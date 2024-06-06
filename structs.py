@@ -8,10 +8,10 @@ class GeneNode:
         self.edges = e
 
 class Edge:
-    def __init__(self, t, s):
+    def __init__(self, t, a):
         '''
         target (GeneNode): the gene the Edge is pointing to/regulating
-        sign (int): 1 if Edge is activating, 0 if Edge is inhibiting
+        act (int): 1 if Edge is activating, 0 if Edge is inhibiting
         '''
         self.target = t
-        self.sign = s
+        self.act = a
