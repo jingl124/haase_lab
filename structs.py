@@ -1,11 +1,11 @@
 class GeneNode:
-    def __init__(self, g, e):
+    def __init__(self, g, e=None):
         '''
         gene (string): name of gene
         edges (list): list of Edges that this gene regulates
         '''
         self.gene = g
-        self.edges = e
+        self.edges = e if e is not None else []
 
 class Edge:
     def __init__(self, t, a):
