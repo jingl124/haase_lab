@@ -9,13 +9,17 @@ class GeneNode:
     
     def add_edge(self, t, a):
         edge = Edge(t, a)
+        # if we have a global edge tracker, then we don't need this for loop
+        for e in self.edges:
+            if e.target == t and e.act == a:
+                return
         self.edges.append(edge)
 
 class Edge:
     def __init__(self, t, a):
         '''
         target (GeneNode): the gene the Edge is pointing to/regulating
-        act (int): 1 if Edge is activating, 0 if Edge is inhibiting
+        act (boolean): True if Edge is activating, False if Edge is inhibiting
         '''
         self.target = t
         self.act = a

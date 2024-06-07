@@ -13,6 +13,9 @@ importlib.reload(structs)
 # global list of GeneNode names that already exist
 existing_nodes = []
 
+# global list of Edges that already exist
+# 
+
 def extract_expression_data(path, sep=','):
     '''
     This function extracts the necessary information from 
@@ -51,16 +54,16 @@ def build_tree(tf, df, threshold):
     
     node = globals()["node_" + tf]
 
+    # establish edges
     for _, row in df_tf.iterrows():
         falls = get_t_fall(row)
         rises = get_t_rise(row)
         target = row['GeneNode']
         time = max(falls[0], rises[0])
-        pos = (time == rises[0])
-        # if time < threshold:
-        #     if pos: 
-                
-        
+        act = (time == rises[0])
+        if time < threshold:
+            edge = structs.Edge(target, act)
+            node.add_edge(edge)    
         
 
 def build_network(tfs):
