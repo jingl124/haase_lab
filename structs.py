@@ -6,6 +6,10 @@ class GeneNode:
         '''
         self.gene = g
         self.edges = e if e is not None else []
+    
+    def add_edge(self, t, a):
+        edge = Edge(t, a)
+        self.edges.append(edge)
 
 class Edge:
     def __init__(self, t, a):

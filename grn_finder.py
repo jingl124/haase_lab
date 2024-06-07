@@ -5,9 +5,13 @@ import scipy
 import matplotlib.pyplot as plt
 import glob
 import numpy as np
+import structs
+import importlib
 
-def dummy():
-    print("hi")
+importlib.reload(structs)
+
+# global list of GeneNode names that already exist
+existing_nodes = []
 
 def extract_expression_data(path, sep=','):
     '''
@@ -22,12 +26,14 @@ def extract_expression_data(path, sep=','):
     print("Expression data extracted.")
     return df
 
-def get_t_fall():
+def get_t_fall(row):
     '''
+    row (pandas Series): row from the original DataFrame
     return: list of floats
     '''
+
     
-def get_t_rise():
+def get_t_rise(row):
     '''
     return: list of floats
     '''
@@ -38,7 +44,24 @@ def build_tree(tf, df, threshold):
     tf (string): TF
     df (DataFrame): Pandas DataFrame with expression data
     '''
-    # df_tf = df[]
+    # initializing the root node if it doesn't exist already
+    if tf not in existing_nodes:
+        df_tf = df[df['TF'] == tf]
+        globals()["node_" + tf] = structs.GeneNode(tf)
+    
+    node = globals()["node_" + tf]
+
+    for _, row in df_tf.iterrows():
+        falls = get_t_fall(row)
+        rises = get_t_rise(row)
+        target = row['GeneNode']
+        time = max(falls[0], rises[0])
+        pos = (time == rises[0])
+        # if time < threshold:
+        #     if pos: 
+                
+        
+        
 
 def build_network(tfs):
     '''
