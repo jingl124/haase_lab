@@ -16,17 +16,28 @@ existing_nodes = []
 
 # global list of Edges that already exist
 # 
-
-def extract_expression_data(path, sep=','):
+exp_dict = {}
+# 
+def extract_expression_data(df):
     '''
     This function extracts the necessary information from 
-    path(string): includes location and name of file
-    sep (string): separator in file (e.g. "\t" for .tsv files, "," for .csv files)
-    return: 
+    df (pandas DataFrame): 
+    
+    return: dictionary of dictionaries
     '''
-    df = pd.read_csv(path, sep=sep)
-    selected_columns = ['TF', 'strain', 'GeneName', 'time', 'log2_shrunken_timecourses']
-    df = df[selected_columns]
+    current_tf = ""
+    current_gene = ""
+    exp_dict = {}
+    for _, row in df.iterrows():
+        tf = row['TF']
+        gene = row['GeneName']
+        if tf != current_tf:
+            current_tf = tf
+        if gene != current_gene:
+            current_gene = gene
+
+    # selected_columns = ['TF', 'strain', 'GeneName', 'time', 'log2_shrunken_timecourses']
+    # df = df[selected_columns]
     print("Expression data extracted.")
     return df
 
