@@ -46,6 +46,7 @@ def get_t_act(row):
     opt = sigmoid_curve_fit(time_series) # [L_opt, x0_opt, k_opt, b_opt]
     return (opt[0]/2.0 + opt[3]), (opt[0] > 0)
 
+# borrowed from online: https://stackoverflow.com/questions/55725139/fit-sigmoid-function-s-shape-curve-to-data-using-python
 def sigmoid(x, L ,x0, k, b):
     y = L / (1 + np.exp(-k*(x-x0))) + b
     return y
