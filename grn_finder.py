@@ -30,7 +30,7 @@ def extract_expression_data(df):
             exp_dict[tf] = {}  # Initialize nested dictionary for tf if not present
         if gene not in exp_dict[tf]:
             exp_dict[tf][gene] = []  # Initialize list for gene if not present
-        exp_dict[tf][gene].append((row['time'], row['log2_cleaned_ratio']))
+        exp_dict[tf][gene].append(row['log2_cleaned_ratio'])
 
 def get_t_act(row):
     '''
@@ -55,7 +55,7 @@ def sigmoid_curve_fit(time_series):
     xdata = [0, 5, 10, 15, 20, 30, 45, 90]
     ydata = time_series
     p0 = [max(ydata), np.median(xdata), 1, min(ydata)] # this is an mandatory initial guess
-    opt, cov = scipy.optimize.curve_fit(sigmoid, xdata, ydata,p0, method='dogbox')
+    opt, cov = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0, method='dogbox', maxfev=100000)
     return opt
 
 def build_tree(tf, df, threshold):
@@ -78,12 +78,11 @@ def build_tree(tf, df, threshold):
     for _, row in df_tf.iterrows():
         # falls = get_t_fall(row)
         # rises = get_t_rise(row)
-        target = row['GeneNode']
+        target = row['GeneName']
         # time = max(falls[0], rises[0])
         time, act = get_t_act(row)
         if time < threshold:
-            edge = structs.Edge(target, act)
-            node.add_edge(edge)    
+            node.add_edge(target, act)    
         
 def visualize_gene_network(gene_nodes):
     dot = graphviz.Digraph(comment='Gene Regulatory Network')
@@ -121,7 +120,7 @@ def main():
     file = "idea_tall_expression_data.tsv"
     path = os.path.join(dir, file)
     df = pd.read_csv(path, sep='\t')
-    tfs = ['ACA1', 'ACE2']
+    tfs = ['ACA1']
     filtered_df = df[df['TF'].isin(tfs)]
     extract_expression_data(filtered_df)
     build_network(tfs, df)
