@@ -7,6 +7,7 @@ import glob
 import numpy as np
 import structs
 import importlib
+import graphviz
 
 importlib.reload(structs)
 
@@ -47,12 +48,15 @@ def build_tree(tf, df, threshold):
     tf (string): TF
     df (DataFrame): Pandas DataFrame with expression data
     '''
+    node_name = "node_" + tf
+
     # initializing the root node if it doesn't exist already
     if tf not in existing_nodes:
         df_tf = df[df['TF'] == tf]
-        globals()["node_" + tf] = structs.GeneNode(tf)
+        globals()[node_name] = structs.GeneNode(tf)
+        existing_nodes.append(globals()[node_name])
     
-    node = globals()["node_" + tf]
+    node = globals()[node_name]
 
     # establish edges
     for _, row in df_tf.iterrows():
@@ -65,12 +69,35 @@ def build_tree(tf, df, threshold):
             edge = structs.Edge(target, act)
             node.add_edge(edge)    
         
+def visualize_gene_network(gene_nodes):
+    dot = graphviz.Digraph(comment='Gene Regulatory Network')
+    
+    # Add nodes
+    for gene in gene_nodes:
+        dot.node(gene.gene)
+    
+    # Add edges
+    for gene in gene_nodes:
+        for edge in gene.edges:
+            if edge.act:
+                color = 'black'
+                arrowhead = 'normal'
+            else:
+                color = 'black'
+                arrowhead = 'tee'
+            dot.edge(gene.gene, edge.target.gene, color=color, arrowhead = arrowhead)
+    
+    # Render the graph
+    dot.render('gene_network', view=True)
 
 def build_network(tfs):
     '''
-    The main function for building the overall network.
+    The primary function for building the overall network.
     tfs (list): list of strings representing TFs
     '''
     for tf in tfs:
         build_tree(tf)
+
+    visualize_gene_network(existing_nodes)
+    
     

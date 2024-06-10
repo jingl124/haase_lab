@@ -1,0 +1,8 @@
+// Gene Regulatory Network
+digraph {
+	GeneA
+	GeneB
+	GeneC
+	GeneA -> GeneB [arrowhead=normal color=green]
+	GeneB -> GeneC [arrowhead=tee color=red]
+}
