@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import scipy.optimize
 import seaborn as sns
 import scipy
 import matplotlib.pyplot as plt
@@ -16,31 +17,48 @@ existing_nodes = []
 
 # global list of Edges that already exist
 # 
-
-def extract_expression_data(path, sep=','):
+exp_dict = {}
+# 
+def extract_expression_data(df):
     '''
     This function extracts the necessary information from 
-    path(string): includes location and name of file
-    sep (string): separator in file (e.g. "\t" for .tsv files, "," for .csv files)
-    return: 
+    df (pandas DataFrame): 
+    
+    return: dictionary of dictionaries
     '''
-    df = pd.read_csv(path, sep=sep)
-    # selected_columns = ['TF', 'strain', 'GeneName', 'time', 'log2_shrunken_timecourses']
-    # df = df[selected_columns]
-    print("Expression data extracted.")
-    return df
+    for _, row in df.iterrows():
+        tf = row['TF']
+        gene = row['GeneName']
+        if tf not in exp_dict:
+            exp_dict[tf] = {}  # Initialize nested dictionary for tf if not present
+        if gene not in exp_dict[tf]:
+            exp_dict[tf][gene] = []  # Initialize list for gene if not present
+        exp_dict[tf][gene].append((row['time'], row['log2_cleaned_ratio']))
 
-def get_t_fall(row):
+def get_t_act(row):
     '''
     row (pandas Series): row from the original DataFrame
-    return: list of floats
+    return: time of activation/inhibition, and whether its activation or not (boolean)
     '''
+    tf = row['TF']
+    gene = row['GeneName']
+    time_series = exp_dict[tf][gene]
+    opt = sigmoid_curve_fit(time_series) # [L_opt, x0_opt, k_opt, b_opt]
+    return (opt[0]/2.0 + opt[3]), (opt[0] > 0)
 
-    
-def get_t_rise(row):
+def sigmoid(x, L ,x0, k, b):
+    y = L / (1 + np.exp(-k*(x-x0))) + b
+    return y
+
+def sigmoid_curve_fit(time_series):
     '''
-    return: list of floats
+    time_series: list of data from log2_cleaned_ratio
     '''
+    xdata = [0, 5, 10, 15, 20, 30, 45, 90]
+    ydata = time_series
+    p0 = [max(ydata), np.median(xdata), 1, min(ydata)] # this is an mandatory initial guess
+    opt, cov = scipy.optimize.curve_fit(sigmoid, xdata, ydata,p0, method='dogbox')
+    return opt
 
 def build_tree(tf, df, threshold):
     '''
@@ -60,11 +78,11 @@ def build_tree(tf, df, threshold):
 
     # establish edges
     for _, row in df_tf.iterrows():
-        falls = get_t_fall(row)
-        rises = get_t_rise(row)
+        # falls = get_t_fall(row)
+        # rises = get_t_rise(row)
         target = row['GeneNode']
-        time = max(falls[0], rises[0])
-        act = (time == rises[0])
+        # time = max(falls[0], rises[0])
+        time, act = get_t_act(row)
         if time < threshold:
             edge = structs.Edge(target, act)
             node.add_edge(edge)    
@@ -90,14 +108,26 @@ def visualize_gene_network(gene_nodes):
     # Render the graph
     dot.render('gene_network', view=True)
 
-def build_network(tfs):
+def build_network(tfs, df):
     '''
     The primary function for building the overall network.
     tfs (list): list of strings representing TFs
     '''
     for tf in tfs:
-        build_tree(tf)
+        build_tree(tf, df, 20) # dummy threshold
 
     visualize_gene_network(existing_nodes)
+
+def main():
+    dir = "/Users/jingliu/Documents/haase/IDEA_data"
+    file = "idea_tall_expression_data.tsv"
+    path = os.path.join(dir, file)
+    df = pd.read_csv(path, sep='\t')
+    tfs = ['ACA1', 'ACE2']
+    filtered_df = df[df['TF'].isin(tfs)]
+    extract_expression_data(filtered_df)
+
+if __name__ == '__main__':
+    main()
     
     

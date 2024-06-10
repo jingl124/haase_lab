@@ -47,14 +47,14 @@ def visualize_gene_network(gene_nodes):
     # Render the graph
     dot.render('gene_network', view=True)
 
-# Example usage
-gene_a = GeneNode('GeneA')
-gene_b = GeneNode('GeneB')
-gene_c = GeneNode('GeneC')
+# # Example usage
+# gene_a = GeneNode('GeneA')
+# gene_b = GeneNode('GeneB')
+# gene_c = GeneNode('GeneC')
 
-gene_a.add_edge(gene_b, True)  # GeneA activates GeneB
-gene_b.add_edge(gene_c, False) # GeneB inhibits GeneC
+# gene_a.add_edge(gene_b, True)  # GeneA activates GeneB
+# gene_b.add_edge(gene_c, False) # GeneB inhibits GeneC
 
-gene_nodes = [gene_a, gene_b, gene_c]
+# gene_nodes = [gene_a, gene_b, gene_c]
 
-visualize_gene_network(gene_nodes)
+# visualize_gene_network(gene_nodes)
