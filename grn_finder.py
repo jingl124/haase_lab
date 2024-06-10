@@ -15,16 +15,13 @@ importlib.reload(structs)
 # global list of GeneNode names that already exist
 existing_nodes = []
 
-# global list of Edges that already exist
-# 
+# global dictionary of expression data
 exp_dict = {}
 # 
 def extract_expression_data(df):
     '''
     This function extracts the necessary information from 
-    df (pandas DataFrame): 
-    
-    return: dictionary of dictionaries
+    df (pandas DataFrame): contains all data
     '''
     for _, row in df.iterrows():
         tf = row['TF']
@@ -127,6 +124,7 @@ def main():
     tfs = ['ACA1', 'ACE2']
     filtered_df = df[df['TF'].isin(tfs)]
     extract_expression_data(filtered_df)
+    build_network(tfs, df)
 
 if __name__ == '__main__':
     main()
