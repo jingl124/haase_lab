@@ -25,8 +25,8 @@ def extract_expression_data(path, sep=','):
     return: 
     '''
     df = pd.read_csv(path, sep=sep)
-    selected_columns = ['TF', 'strain', 'GeneName', 'time', 'log2_shrunken_timecourses']
-    df = df[selected_columns]
+    # selected_columns = ['TF', 'strain', 'GeneName', 'time', 'log2_shrunken_timecourses']
+    # df = df[selected_columns]
     print("Expression data extracted.")
     return df
 
