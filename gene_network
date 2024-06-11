@@ -1,8 +1,10 @@
 // Gene Regulatory Network
 digraph {
-	GeneA
-	GeneB
-	GeneC
-	GeneA -> GeneB [arrowhead=normal color=green]
-	GeneB -> GeneC [arrowhead=tee color=red]
+	ACA1
+	AAC1
+	AAD14
+	AAD3
+	ACA1 -> AAC1 [arrowhead=normal color=black]
+	ACA1 -> AAD14 [arrowhead=normal color=black]
+	ACA1 -> AAD3 [arrowhead=tee color=black]
 }
