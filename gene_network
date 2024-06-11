@@ -4,7 +4,19 @@ digraph {
 	AAC1
 	AAD14
 	AAD3
+	AAD6
+	AAT2
+	ABD1
+	ABM1
+	ABP140
+	ABZ2
 	ACA1 -> AAC1 [arrowhead=normal color=black]
 	ACA1 -> AAD14 [arrowhead=normal color=black]
 	ACA1 -> AAD3 [arrowhead=tee color=black]
+	ACA1 -> AAD6 [arrowhead=tee color=black]
+	ACA1 -> AAT2 [arrowhead=tee color=black]
+	ACA1 -> ABD1 [arrowhead=normal color=black]
+	ACA1 -> ABM1 [arrowhead=tee color=black]
+	ACA1 -> ABP140 [arrowhead=tee color=black]
+	ACA1 -> ABZ2 [arrowhead=normal color=black]
 }

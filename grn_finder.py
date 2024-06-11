@@ -54,6 +54,8 @@ def scale_data(data):
     """
     data_min = min(data)
     data_max = max(data)
+    if data_max == data_min:
+        return [0 for _ in data]
     return [(d - data_min) / (data_max - data_min) for d in data]
 
 def sigmoid_curve_fit(time_series):
@@ -137,6 +139,31 @@ def visualize_gene_network(gene_nodes):
     
     # Render the graph
     dot.render('gene_network', view=True)
+    # G = nx.DiGraph()
+    
+    # # Add nodes and edges
+    # for gene_name in gene_nodes:
+    #     gene_node = globals()[gene_name]
+    #     G.add_node(gene_node.gene)
+    #     for edge in gene_node.edges:
+    #         if edge.act:
+    #             color = 'green'
+    #             arrowhead = 'normal'
+    #         else:
+    #             color = 'red'
+    #             arrowhead = 'tee'
+    #         G.add_edge(gene_node.gene, edge.target.gene, color=color, arrowhead=arrowhead)
+    
+    # # Get edge colors and styles
+    # edge_colors = [G[u][v]['color'] for u, v in G.edges()]
+    # edge_styles = ['solid' if G[u][v]['arrowhead'] == 'normal' else 'dashed' for u, v in G.edges()]
+
+    # # Draw the network
+    # pos = nx.spring_layout(G)  # Position nodes using Fruchterman-Reingold force-directed algorithm
+    
+    # nx.draw(G, pos, with_labels=True, node_size=3000, node_color='lightblue', font_size=10, font_weight='bold', edge_color=edge_colors, style=edge_styles, arrowsize=20)
+    # plt.title('Gene Regulatory Network')
+    # plt.show()
 
 def build_network(tfs, df):
     '''
@@ -155,7 +182,7 @@ def main():
     df = pd.read_csv(path, sep='\t')
     tfs = ['ACA1']
     filtered_df = df[df['TF'].isin(tfs)]
-    filtered_df = filtered_df.iloc[:60]
+    filtered_df = filtered_df.iloc[:180]
     extract_expression_data(filtered_df)
     build_network(tfs, df)
 
