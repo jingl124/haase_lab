@@ -1,22 +1,14 @@
 // Gene Regulatory Network
 digraph {
-	ACA1
-	AAC1
-	AAD14
-	AAD3
-	AAD6
-	AAT2
-	ABD1
-	ABM1
-	ABP140
-	ABZ2
-	ACA1 -> AAC1 [arrowhead=normal color=black]
-	ACA1 -> AAD14 [arrowhead=normal color=black]
-	ACA1 -> AAD3 [arrowhead=tee color=black]
-	ACA1 -> AAD6 [arrowhead=tee color=black]
-	ACA1 -> AAT2 [arrowhead=tee color=black]
-	ACA1 -> ABD1 [arrowhead=normal color=black]
-	ACA1 -> ABM1 [arrowhead=tee color=black]
-	ACA1 -> ABP140 [arrowhead=tee color=black]
-	ACA1 -> ABZ2 [arrowhead=normal color=black]
+	ACA1 [fontsize=10 height=0.3 penwidth=1.0 width=0.3]
+	AAC1 [fontsize=10 height=0.3 penwidth=1.0 width=0.3]
+	AAD14 [fontsize=10 height=0.3 penwidth=1.0 width=0.3]
+	AAD3 [fontsize=10 height=0.3 penwidth=1.0 width=0.3]
+	AAD6 [fontsize=10 height=0.3 penwidth=1.0 width=0.3]
+	AAT2 [fontsize=10 height=0.3 penwidth=1.0 width=0.3]
+	ABD1 [fontsize=10 height=0.3 penwidth=1.0 width=0.3]
+	ABM1 [fontsize=10 height=0.3 penwidth=1.0 width=0.3]
+	ABP140 [fontsize=10 height=0.3 penwidth=1.0 width=0.3]
+	ABZ2 [fontsize=10 height=0.3 penwidth=1.0 width=0.3]
+	ACA1 [fontsize=10 height=0.3 penwidth=1.0 width=0.3]
 }

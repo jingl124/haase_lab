@@ -8,7 +8,8 @@ import glob
 import numpy as np
 import structs
 import importlib
-import graphviz
+import networkx as nx
+# import graphviz
 
 importlib.reload(structs)
 
@@ -64,17 +65,6 @@ def sigmoid_curve_fit(time_series):
     '''
     xdata = [0, 5, 10, 15, 20, 30, 45, 90]
     ydata = scale_data(time_series)
-    # p0 = [0, 0, 0, 0] #[max(ydata), np.median(xdata), 1, min(ydata)] # this is an mandatory initial guess
-    # opt, cov = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0, method='dogbox', maxfev=100000)
-    #  # Initial guess for the parameters
-    # p0 = [max(ydata), np.median(xdata), 1, min(ydata)]
-    
-    # # Bounds for the parameters to ensure all x and y values are > 0
-    # bounds = (0, [np.inf, np.inf, np.inf, np.inf])
-    
-    # # Curve fitting with bounds and method specified
-    # opt, cov = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
-    # Initial guess for the parameters
     p0 = [max(ydata), np.median(xdata), 1, min(ydata)]
     
     # Bounds for the parameters to ensure positive x0, and k, but allow L and b to be any value
@@ -87,7 +77,6 @@ def sigmoid_curve_fit(time_series):
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
-    # return opt
 
 def build_tree(tf, df, t_thresh, amp_thresh):
     '''
@@ -120,50 +109,38 @@ def build_tree(tf, df, t_thresh, amp_thresh):
             node.add_edge(target, time[1])    
         
 def visualize_gene_network(gene_nodes):
-    dot = graphviz.Digraph(comment='Gene Regulatory Network')
+    G = nx.DiGraph()
     
-    # Add nodes
-    for gene in gene_nodes:
-        dot.node(globals()[gene].gene)
-    
-    # Add edges
-    for gene in gene_nodes:
-        for edge in globals()[gene].edges:
+    # Add nodes and edges
+    for gene_name in gene_nodes:
+        gene_node = globals()[gene_name]
+        G.add_node(gene_node.gene)
+        for edge in gene_node.edges:
             if edge.act:
-                color = 'black'
-                arrowhead = 'normal'
+                color = 'green'
             else:
-                color = 'black'
-                arrowhead = 'tee'
-            dot.edge(globals()[gene].gene, edge.target.gene, color=color, arrowhead = arrowhead)
-    
-    # Render the graph
-    dot.render('gene_network', view=True)
-    # G = nx.DiGraph()
-    
-    # # Add nodes and edges
-    # for gene_name in gene_nodes:
-    #     gene_node = globals()[gene_name]
-    #     G.add_node(gene_node.gene)
-    #     for edge in gene_node.edges:
-    #         if edge.act:
-    #             color = 'green'
-    #             arrowhead = 'normal'
-    #         else:
-    #             color = 'red'
-    #             arrowhead = 'tee'
-    #         G.add_edge(gene_node.gene, edge.target.gene, color=color, arrowhead=arrowhead)
-    
-    # # Get edge colors and styles
-    # edge_colors = [G[u][v]['color'] for u, v in G.edges()]
-    # edge_styles = ['solid' if G[u][v]['arrowhead'] == 'normal' else 'dashed' for u, v in G.edges()]
+                color = 'red'
+            G.add_edge(gene_node.gene, edge.target.gene, color=color)
 
-    # # Draw the network
-    # pos = nx.spring_layout(G)  # Position nodes using Fruchterman-Reingold force-directed algorithm
-    
-    # nx.draw(G, pos, with_labels=True, node_size=3000, node_color='lightblue', font_size=10, font_weight='bold', edge_color=edge_colors, style=edge_styles, arrowsize=20)
-    # plt.title('Gene Regulatory Network')
-    # plt.show()
+    # Draw the network
+    pos = nx.spring_layout(G)  # Position nodes using Fruchterman-Reingold force-directed algorithm
+
+    # Draw edges with appropriate arrow styles
+    for u, v, attrs in G.edges(data=True):
+        if attrs['color'] == 'green':
+            arrowstyle = '->'
+        else:
+            arrowstyle = '-|>'  # Tee-style arrowhead for red edges
+        nx.draw_networkx_edges(G, pos, edgelist=[(u, v)], edge_color=attrs['color'], connectionstyle=f"arc3,rad={0.3 if attrs['color'] == 'red' else 0}", arrowstyle=arrowstyle, arrowsize=20)
+
+    # Draw nodes
+    nx.draw_networkx_nodes(G, pos, node_size=3000, node_color='lightblue')
+
+    # Draw node labels
+    nx.draw_networkx_labels(G, pos)
+
+    plt.title('Gene Regulatory Network')
+    plt.show()
 
 def build_network(tfs, df):
     '''
