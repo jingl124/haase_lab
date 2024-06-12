@@ -118,9 +118,11 @@ def visualize_gene_network(gene_nodes):
         for edge in gene_node.edges:
             if edge.act:
                 color = 'green'
+                arrowstyle = '->'
             else:
                 color = 'red'
-            G.add_edge(gene_node.gene, edge.target.gene, color=color)
+                arrowstyle = '-'
+            G.add_edge(gene_node.gene, edge.target.gene, color=color, arrowstyle=arrowstyle)
 
     # Draw the network
     pos = nx.spring_layout(G)  # Position nodes using Fruchterman-Reingold force-directed algorithm
@@ -130,8 +132,8 @@ def visualize_gene_network(gene_nodes):
         if attrs['color'] == 'green':
             arrowstyle = '->'
         else:
-            arrowstyle = '-|>'  # Tee-style arrowhead for red edges
-        nx.draw_networkx_edges(G, pos, edgelist=[(u, v)], edge_color=attrs['color'], connectionstyle=f"arc3,rad={0.3 if attrs['color'] == 'red' else 0}", arrowstyle=arrowstyle, arrowsize=20)
+            arrowstyle = '-'  # Tee-style arrowhead for red edges
+        nx.draw_networkx_edges(G, pos, edgelist=[(u, v)], edge_color=attrs['color'], connectionstyle=f"arc3,rad={0.3 if attrs['color'] == 'red' else 0}", arrowstyle=arrowstyle, arrowsize=60)
 
     # Draw nodes
     nx.draw_networkx_nodes(G, pos, node_size=3000, node_color='lightblue')
@@ -158,7 +160,9 @@ def main():
     path = os.path.join(dir, file)
     df = pd.read_csv(path, sep='\t')
     tfs = ['ACA1']
+    targets = ['AAC1', 'AAC3']
     filtered_df = df[df['TF'].isin(tfs)]
+    filtered_df = filtered_df[filtered_df['GeneName'].isin(targets)]
     filtered_df = filtered_df.iloc[:180]
     extract_expression_data(filtered_df)
     build_network(tfs, df)
