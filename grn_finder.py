@@ -142,6 +142,7 @@ def visualize_gene_network(gene_nodes):
     nx.draw_networkx_labels(G, pos)
 
     plt.title('Gene Regulatory Network')
+    plt.savefig("gene_network.pdf", format="pdf")
     plt.show()
 
 def build_network(tfs, df):
@@ -160,9 +161,9 @@ def main():
     path = os.path.join(dir, file)
     df = pd.read_csv(path, sep='\t')
     tfs = ['ACA1']
-    targets = ['AAC1', 'AAC3']
+    # targets = ['AAC1', 'AAC3']
     filtered_df = df[df['TF'].isin(tfs)]
-    filtered_df = filtered_df[filtered_df['GeneName'].isin(targets)]
+    # filtered_df = filtered_df[filtered_df['GeneName'].isin(targets)]
     filtered_df = filtered_df.iloc[:180]
     extract_expression_data(filtered_df)
     build_network(tfs, df)
