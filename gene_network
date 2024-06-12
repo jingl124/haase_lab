@@ -1,15 +1,15 @@
 // Gene Regulatory Network
 digraph {
-	ACA1
-	AAC1
-	AAD14
-	AAD3
-	AAD6
-	AAT2
-	ABD1
-	ABM1
-	ABP140
-	ABZ2
+	ACA1 [shape=box]
+	AAC1 [shape=box]
+	AAD14 [shape=box]
+	AAD3 [shape=box]
+	AAD6 [shape=box]
+	AAT2 [shape=box]
+	ABD1 [shape=box]
+	ABM1 [shape=box]
+	ABP140 [shape=box]
+	ABZ2 [shape=box]
 	ACA1 -> AAC1 [arrowhead=normal color=black]
 	ACA1 -> AAD14 [arrowhead=normal color=black]
 	ACA1 -> AAD3 [arrowhead=tee color=black]

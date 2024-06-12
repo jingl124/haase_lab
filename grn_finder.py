@@ -113,7 +113,7 @@ def visualize_gene_network(gene_nodes):
     
     # Add nodes
     for gene in gene_nodes:
-        dot.node(globals()[gene].gene)
+        dot.node(globals()[gene].gene, shape='box')
     
     # Add edges
     for gene in gene_nodes:
