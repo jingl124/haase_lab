@@ -133,7 +133,7 @@ def visualize_gene_network(gene_nodes):
             arrowstyle = '->'
         else:
             arrowstyle = '-'  # Tee-style arrowhead for red edges
-        nx.draw_networkx_edges(G, pos, edgelist=[(u, v)], edge_color=attrs['color'], connectionstyle=f"arc3,rad={0.3 if attrs['color'] == 'red' else 0}", arrowstyle=arrowstyle, arrowsize=60)
+        nx.draw_networkx_edges(G, pos, edgelist=[(u, v)], edge_color=attrs['color'], connectionstyle=f"arc3,rad={0.3 if attrs['color'] == 'red' else 0}", arrowstyle=arrowstyle, arrowsize=30)
 
     # Draw nodes
     nx.draw_networkx_nodes(G, pos, node_size=3000, node_color='lightblue')
