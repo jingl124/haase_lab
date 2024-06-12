@@ -9,7 +9,7 @@ import numpy as np
 import structs
 import importlib
 import networkx as nx
-# import graphviz
+import graphviz
 
 importlib.reload(structs)
 
@@ -109,38 +109,25 @@ def build_tree(tf, df, t_thresh, amp_thresh):
             node.add_edge(target, time[1])    
         
 def visualize_gene_network(gene_nodes):
-    G = nx.DiGraph()
+    dot = graphviz.Digraph(comment='Gene Regulatory Network')
     
-    # Add nodes and edges
-    for gene_name in gene_nodes:
-        gene_node = globals()[gene_name]
-        G.add_node(gene_node.gene)
-        for edge in gene_node.edges:
+    # Add nodes
+    for gene in gene_nodes:
+        dot.node(globals()[gene].gene)
+    
+    # Add edges
+    for gene in gene_nodes:
+        for edge in globals()[gene].edges:
             if edge.act:
-                color = 'green'
+                color = 'black'
+                arrowhead = 'normal'
             else:
-                color = 'red'
-            G.add_edge(gene_node.gene, edge.target.gene, color=color)
+                color = 'black'
+                arrowhead = 'tee'
+            dot.edge(globals()[gene].gene, edge.target.gene, color=color, arrowhead = arrowhead)
 
-    # Draw the network
-    pos = nx.spring_layout(G)  # Position nodes using Fruchterman-Reingold force-directed algorithm
-
-    # Draw edges with appropriate arrow styles
-    for u, v, attrs in G.edges(data=True):
-        if attrs['color'] == 'green':
-            arrowstyle = '->'
-        else:
-            arrowstyle = '-|>'  # Tee-style arrowhead for red edges
-        nx.draw_networkx_edges(G, pos, edgelist=[(u, v)], edge_color=attrs['color'], connectionstyle=f"arc3,rad={0.3 if attrs['color'] == 'red' else 0}", arrowstyle=arrowstyle, arrowsize=20)
-
-    # Draw nodes
-    nx.draw_networkx_nodes(G, pos, node_size=3000, node_color='lightblue')
-
-    # Draw node labels
-    nx.draw_networkx_labels(G, pos)
-
-    plt.title('Gene Regulatory Network')
-    plt.show()
+    # Render the graph
+    dot.render('gene_network', view=True)
 
 def build_network(tfs, df):
     '''
