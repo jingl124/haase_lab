@@ -140,17 +140,21 @@ def build_network(tfs):
     visualize_gene_network(existing_nodes)
 
 def main():
+    # reading data
     dir = "/Users/jingliu/Documents/haase/IDEA_data"
     file = "idea_tall_expression_data.tsv"
     path = os.path.join(dir, file)
     df = pd.read_csv(path, sep='\t')
-    # tfs = df['GeneName'].unique()
-    # print(tfs)
-    tfs = ['ACA1']
+
+    # restricting nodes
+    tfs = ['CLN3', 'YOX1']
     targets = ['AAC1', 'AAC3']
-    filtered_df = df[df['TF'].isin(tfs) & df['GeneName'].isin(targets)]
-    # filtered_df = filtered_df.iloc[:180]
-    extract_expression_data(filtered_df)
+    df = df[df['TF'].isin(tfs) & df['GeneName'].isin(targets)]
+    if df.empty:
+        raise Exception("DataFrame is empty. Please check the input TFs and target genes.")
+
+    # reformat data and build network
+    extract_expression_data(df)
     build_network(tfs)
 
 if __name__ == '__main__':
