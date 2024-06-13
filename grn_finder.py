@@ -78,7 +78,7 @@ def sigmoid_curve_fit(time_series):
         print(f"An error occurred: {e}")
         return None
 
-def build_tree(tf, df, t_thresh, amp_thresh):
+def build_tree(tf, t_thresh, amp_thresh):
     '''
     Create a tree structure with a height of 1 for a given TF.
     tf (string): TF
@@ -88,7 +88,7 @@ def build_tree(tf, df, t_thresh, amp_thresh):
 
     # initializing the root node if it doesn't exist already
     if tf not in existing_nodes:
-        df_tf = df[df['TF'] == tf]
+        # df_tf = df[df['TF'] == tf]
         globals()[node_name] = structs.GeneNode(tf)
         existing_nodes.append(node_name)
     
@@ -129,13 +129,13 @@ def visualize_gene_network(gene_nodes):
     # Render the graph
     dot.render('gene_network', view=True)
 
-def build_network(tfs, df):
+def build_network(tfs):
     '''
     The primary function for building the overall network.
     tfs (list): list of strings representing TFs
     '''
     for tf in tfs:
-        build_tree(tf, df, 20, 0.2) # dummy thresholds
+        build_tree(tf, 20, 0.2) # dummy thresholds
 
     visualize_gene_network(existing_nodes)
 
@@ -144,11 +144,14 @@ def main():
     file = "idea_tall_expression_data.tsv"
     path = os.path.join(dir, file)
     df = pd.read_csv(path, sep='\t')
+    # tfs = df['GeneName'].unique()
+    # print(tfs)
     tfs = ['ACA1']
-    filtered_df = df[df['TF'].isin(tfs)]
-    filtered_df = filtered_df.iloc[:180]
+    targets = ['AAC1', 'AAC3']
+    filtered_df = df[df['TF'].isin(tfs) & df['GeneName'].isin(targets)]
+    # filtered_df = filtered_df.iloc[:180]
     extract_expression_data(filtered_df)
-    build_network(tfs, df)
+    build_network(tfs)
 
 if __name__ == '__main__':
     main()
