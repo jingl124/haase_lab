@@ -10,6 +10,7 @@ import structs
 import importlib
 import graphviz
 import matplotlib
+import math
 
 importlib.reload(structs)
 
@@ -48,21 +49,18 @@ def sort_genes(path, sep):
             tfs.append(gene)
     return tfs, targets
 
-def filter_df():
+def filter_df(path, gene_path):
     # reading data
-    dir = "/Users/jingliu/Documents/haase/IDEA_data"
-    file = "idea_tall_expression_data.tsv"
-    path = os.path.join(dir, file)
     df = pd.read_csv(path, sep='\t')
 
     # restricting nodes
-    gene_dir = '/Users/jingliu/Documents/haase/haase_lab'
-    gene_file = 'genes_sorted.csv'
-    gene_path = os.path.join(gene_dir, gene_file)
     tfs, targets = sort_genes(gene_path, ',')
     df = df[df['TF'].isin(tfs) & df['GeneName'].isin(targets)]
     if df.empty:
         raise Exception("DataFrame is empty. Please check the input TFs and target genes.")
+    
+    # filter columns
+    df = df[['TF', 'GeneName', 'time', 'log2_cleaned_ratio']]
     return df
 
 # using sigmoidal fit to retrieve gene expression info
@@ -115,12 +113,48 @@ def sigmoid_curve_fit(tf, gene):
         return None
 
 # building heat maps
-def heat_maps():
+def heat_map_colors():
+
     norm = matplotlib.colors.Normalize(-1.5,1.5)
     colors = [[norm(-1.5), "cyan"],
           [norm(0), "black"],
          [norm(1.5), "yellow"]]
     haase = matplotlib.colors.LinearSegmentedColormap.from_list("", colors)
+    return haase
+
+def create_heat_maps(df):
+    # run heat_map_colors() to get haase color scheme
+    haase = heat_map_colors()
+
+    # create plot
+    fig = plt.figure(figsize = (15,10))
+    fig.subplots_adjust(hspace=0.4, wspace=0.4, top = 0.90)
+    fig.suptitle("IDEA Dataset Expression Levels", fontsize = 15)
+
+    tfs = df['TF'].unique()
+    num_tfs = len(tfs)
+
+    # Calculate number of rows needed for subplots (2 columns per row)
+    num_cols = 4
+    num_rows = math.ceil(num_tfs / num_cols)
+
+    for i, tf in enumerate(tfs):    
+        # Filter data for the specific TF
+        tf_data = df[df['TF'] == tf]
+
+        # Create a pivot table for heatmap 
+        heatmap_data = tf_data.pivot(index='GeneName', columns='time', values='log2_cleaned_ratio')
+
+        # Make subplot
+        plt.subplot(num_rows, num_cols, i + 1)
+        sns.heatmap(heatmap_data, cmap=haase, cbar=True)
+        plt.title(tf)
+
+    plt.savefig("heat_maps.png")
+    plt.show()
+
+
+
 
 # network construction
 def build_tree(tf, t_thresh, amp_thresh):
@@ -178,11 +212,22 @@ def build_network(df):
     visualize_gene_network(gene_nodes)
 
 def main():
-    df = filter_df()
+    dir = "/Users/jingliu/Documents/haase/IDEA_data"
+    file = "idea_tall_expression_data.tsv"
+    path = os.path.join(dir, file)
 
-    # reformat data and build network
-    extract_expression_data(df)
-    build_network(df)
+    gene_dir = '/Users/jingliu/Documents/haase/haase_lab'
+    gene_file = 'genes_sorted.csv'
+    gene_path = os.path.join(gene_dir, gene_file)
+
+    df = filter_df(path, gene_path)
+
+    # # reformat data and build network
+    # extract_expression_data(df)
+    # build_network(df)
+
+    # create heat maps
+    create_heat_maps(df)
 
 if __name__ == '__main__':
     main()
