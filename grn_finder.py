@@ -9,12 +9,12 @@ import numpy as np
 import structs
 import importlib
 import networkx as nx
-# import graphviz
+import graphviz
 
 importlib.reload(structs)
 
-# global list of GeneNode names (strings) that already exist
-existing_nodes = []
+# global dictionary of GeneNode names (strings) and the actual GeneNodes that already exist
+gene_nodes = {}
 
 # global dictionary of expression data
 exp_dict = {}
@@ -31,18 +31,31 @@ def extract_expression_data(df):
             exp_dict[tf] = {}  # Initialize nested dictionary for tf if not present
         if gene not in exp_dict[tf]:
             exp_dict[tf][gene] = []  # Initialize list for gene if not present
-        exp_dict[tf][gene].append(row['log2_cleaned_ratio'])
+        exp_dict[tf][gene].append([row['time'],
+                                   row['log2_cleaned_ratio']])
+
+def sort_genes(path, sep):
+    df = pd.read_csv(path, sep=sep)
+    tfs = []
+    targets = []
+    for _, row in df.iterrows():
+        gene = row['gene']
+        gene_type = row['type']
+        if 'target' in gene_type:
+            targets.append(gene)
+        if 'tf' in gene_type:
+            tfs.append(gene)
+    return tfs, targets
 
 def get_t_act(tf, gene, amp_thresh):
     '''
     row (pandas Series): row from the original DataFrame
     return: time of activation/inhibition, and whether its activation or not (boolean)
     '''
-    time_series = exp_dict[tf][gene]
-    opt = sigmoid_curve_fit(time_series) # [L_opt, x0_opt, k_opt, b_opt]
+    opt = sigmoid_curve_fit(tf, gene) # [L_opt, x0_opt, k_opt, b_opt]
     if opt is None or len(opt) == 0 or abs(opt[0]) < amp_thresh:
-        return None
-    return [opt[1], (opt[0] > 0)]
+        return None, None
+    return opt[1], (opt[0] > 0)
 
 # borrowed from online: https://stackoverflow.com/questions/55725139/fit-sigmoid-function-s-shape-curve-to-data-using-python
 def sigmoid(x, L ,x0, k, b):
@@ -59,12 +72,17 @@ def scale_data(data):
         return [0 for _ in data]
     return [(d - data_min) / (data_max - data_min) for d in data]
 
-def sigmoid_curve_fit(time_series):
+def sigmoid_curve_fit(tf, gene):
     '''
     time_series: list of data from log2_cleaned_ratio
     '''
-    xdata = [0, 5, 10, 15, 20, 30, 45, 90]
-    ydata = scale_data(time_series)
+    time_series = exp_dict[tf][gene]
+    xdata = []
+    ydata = []
+    for time in time_series:
+        xdata.append(time[0])
+        ydata.append(time[1])
+    ydata = scale_data(ydata)
     p0 = [max(ydata), np.median(xdata), 1, min(ydata)]
     
     # Bounds for the parameters to ensure positive x0, and k, but allow L and b to be any value
@@ -72,100 +90,90 @@ def sigmoid_curve_fit(time_series):
     
     try:
         # Curve fitting with bounds and method specified
-        opt, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
+        opt, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=10000)
         return opt
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"An error occurred - TF: {tf}, target: {gene}")
         return None
 
-def build_tree(tf, df, t_thresh, amp_thresh):
+def build_tree(tf, t_thresh, amp_thresh):
     '''
     Create a tree structure with a height of 1 for a given TF.
     tf (string): TF
-    df (DataFrame): Pandas DataFrame with expression data
+    t_thresh: time threshold for direct connection
+    amp_thresh: minimum amplitude threshold for activation/inhibition
     '''
-    node_name = "node_" + tf
-
     # initializing the root node if it doesn't exist already
-    if tf not in existing_nodes:
-        df_tf = df[df['TF'] == tf]
-        globals()[node_name] = structs.GeneNode(tf)
-        existing_nodes.append(node_name)
+    if tf not in gene_nodes:
+        gene_nodes[tf] = structs.GeneNode(tf)
     
-    node = globals()[node_name]
+    node = gene_nodes[tf]
 
-    # establish edges
-    for gene in exp_dict[tf].keys():#_, row in df_tf.iterrows():
-        # falls = get_t_fall(row)
-        # rises = get_t_rise(row)
-        # time = max(falls[0], rises[0])
-        time = get_t_act(tf, gene, amp_thresh)
-        if time is not None and time[0] > 0 and time[0] < t_thresh:
-            target_name = "node_" + gene
-            if gene not in existing_nodes:
-                globals()[target_name] = structs.GeneNode(gene)
-                existing_nodes.append(target_name)
-            target = globals()[target_name]
-            node.add_edge(target, time[1])    
+    # establish edges  
+    for gene in exp_dict[tf].keys():
+        time, sign = get_t_act(tf, gene, amp_thresh)
+        if time is not None and time > 0 and time < t_thresh:
+            if gene not in gene_nodes:
+                gene_nodes[gene] = structs.GeneNode(gene)
+            target = gene_nodes[gene]
+            node.add_edge(target, sign) 
         
 def visualize_gene_network(gene_nodes):
-    G = nx.DiGraph()
+    dot = graphviz.Digraph(comment='Gene Regulatory Network')
     
-    # Add nodes and edges
-    for gene_name in gene_nodes:
-        gene_node = globals()[gene_name]
-        G.add_node(gene_node.gene)
-        for edge in gene_node.edges:
+    # Add nodes
+    for gene in gene_nodes:
+        dot.node(gene_nodes[gene].gene, shape='box')
+    
+    # Add edges
+    edges_df = pd.DataFrame(columns=['TF', 'GeneName', 'arrowhead'])
+    for gene in gene_nodes:
+        for edge in gene_nodes[gene].edges:
             if edge.act:
-                color = 'green'
-                arrowstyle = '->'
+                arrowhead = 'normal'
             else:
-                color = 'red'
-                arrowstyle = '-'
-            G.add_edge(gene_node.gene, edge.target.gene, color=color, arrowstyle=arrowstyle)
+                arrowhead = 'tee'
+            dot.edge(gene, edge.target.gene, color='black', arrowhead=arrowhead)
+            edges_df.loc[len(edges_df.index)] = [gene, edge.target.gene, arrowhead]
+            # edges_df = pd.concat([globals()[gene].gene, edge.target.gene, arrowhead], ignore_index=True)
+    edges_df.to_csv("edges.csv", index=False)
 
-    # Draw the network
-    pos = nx.spring_layout(G)  # Position nodes using Fruchterman-Reingold force-directed algorithm
+    # Render the graph
+    dot.render('gene_network', view=True)
 
-    # Draw edges with appropriate arrow styles
-    for u, v, attrs in G.edges(data=True):
-        if attrs['color'] == 'green':
-            arrowstyle = '->'
-        else:
-            arrowstyle = '-'  # Tee-style arrowhead for red edges
-        nx.draw_networkx_edges(G, pos, edgelist=[(u, v)], edge_color=attrs['color'], connectionstyle=f"arc3,rad={0.3 if attrs['color'] == 'red' else 0}", arrowstyle=arrowstyle, arrowsize=60)
-
-    # Draw nodes
-    nx.draw_networkx_nodes(G, pos, node_size=3000, node_color='lightblue')
-
-    # Draw node labels
-    nx.draw_networkx_labels(G, pos)
-
-    plt.title('Gene Regulatory Network')
-    plt.show()
-
-def build_network(tfs, df):
+def build_network(tfs):
     '''
     The primary function for building the overall network.
     tfs (list): list of strings representing TFs
     '''
     for tf in tfs:
-        build_tree(tf, df, 20, 0.2) # dummy thresholds
+        build_tree(tf, 20, 0.2) # dummy thresholds
 
-    visualize_gene_network(existing_nodes)
+    visualize_gene_network(gene_nodes)
 
 def main():
+    # reading data
     dir = "/Users/jingliu/Documents/haase/IDEA_data"
     file = "idea_tall_expression_data.tsv"
     path = os.path.join(dir, file)
     df = pd.read_csv(path, sep='\t')
-    tfs = ['ACA1']
-    # targets = ['AAC1', 'AAC3']
-    filtered_df = df[df['TF'].isin(tfs)]
-    # filtered_df = filtered_df[filtered_df['GeneName'].isin(targets)]
-    filtered_df = filtered_df.iloc[:180]
-    extract_expression_data(filtered_df)
-    build_network(tfs, df)
+
+    # restricting nodes
+    gene_dir = '/Users/jingliu/Documents/haase/haase_lab'
+    gene_file = 'genes_sorted.csv'
+    gene_path = os.path.join(gene_dir, gene_file)
+    tfs, targets = sort_genes(gene_path, ',')
+    # tfs = ['ACA1']
+    # targets = ['AAC1']
+    df = df[df['TF'].isin(tfs) & df['GeneName'].isin(targets)]
+    tfs = df['TF'].unique()
+    targets = df['GeneName'].unique()
+    if df.empty:
+        raise Exception("DataFrame is empty. Please check the input TFs and target genes.")
+    df.to_csv("filtered_data.csv", index=False)
+    # reformat data and build network
+    extract_expression_data(df)
+    build_network(tfs)
 
 if __name__ == '__main__':
     main()
