@@ -11,6 +11,7 @@ import importlib
 import graphviz
 import matplotlib
 import math
+from sklearn.cluster import KMeans
 
 importlib.reload(structs)
 
@@ -63,6 +64,16 @@ def filter_df(path, gene_path):
     df = df[['TF', 'GeneName', 'time', 'log2_cleaned_ratio']]
     return df
 
+def cluster_expression_levels(df):
+    # Define number of clusters (3 for activation, inhibition, and other)
+    kmeans = KMeans(n_clusters=3)
+
+    # Fit the model on features
+    kmeans.fit(df['log2_cleaned_ratio'])
+    
+    # Add cluster labels to the dataframe
+    df['cluster'] = kmeans.labels_
+
 # using sigmoidal fit to retrieve gene expression info
 def get_t_act(tf, gene, amp_thresh):
     '''
@@ -109,7 +120,7 @@ def sigmoid_curve_fit(tf, gene):
         opt, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
         return opt
     except Exception as e:
-        print(f"An error occurred - TF: {tf}, target: {gene}")
+        print(f"{e} - TF: {tf}, target: {gene}")
         return None
 
 # building heat maps
