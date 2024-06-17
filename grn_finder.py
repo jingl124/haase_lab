@@ -130,11 +130,8 @@ def create_heat_maps(df):
     fig = plt.figure(figsize = (15,10))
     fig.subplots_adjust(hspace=0.4, wspace=0.4, top = 0.90)
     fig.suptitle("IDEA Dataset Expression Levels", fontsize = 15)
-
     tfs = df['TF'].unique()
     num_tfs = len(tfs)
-
-    # Calculate number of rows needed for subplots (2 columns per row)
     num_cols = 4
     num_rows = math.ceil(num_tfs / num_cols)
 
@@ -152,9 +149,6 @@ def create_heat_maps(df):
 
     plt.savefig("heat_maps.png")
     plt.show()
-
-
-
 
 # network construction
 def build_tree(tf, t_thresh, amp_thresh):
@@ -222,12 +216,12 @@ def main():
 
     df = filter_df(path, gene_path)
 
+    # create heat maps
+    create_heat_maps(df)
+
     # # reformat data and build network
     # extract_expression_data(df)
     # build_network(df)
-
-    # create heat maps
-    create_heat_maps(df)
 
 if __name__ == '__main__':
     main()
