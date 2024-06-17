@@ -12,6 +12,8 @@ import graphviz
 import matplotlib
 import math
 from sklearn.cluster import KMeans
+from tslearn.clustering import KShape
+from tslearn.preprocessing import TimeSeriesScalerMeanVariance
 
 importlib.reload(structs)
 
@@ -65,14 +67,8 @@ def filter_df(path, gene_path):
     return df
 
 def cluster_expression_levels(df):
-    # Define number of clusters (3 for activation, inhibition, and other)
-    kmeans = KMeans(n_clusters=3)
-
-    # Fit the model on features
-    kmeans.fit(df['log2_cleaned_ratio'])
+    cluster_df = pd.DataFrame(columns=['TF', 'GeneName', 'cluster'])
     
-    # Add cluster labels to the dataframe
-    df['cluster'] = kmeans.labels_
 
 # using sigmoidal fit to retrieve gene expression info
 def get_t_act(tf, gene, amp_thresh):
