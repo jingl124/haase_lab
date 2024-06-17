@@ -8,8 +8,8 @@ import glob
 import numpy as np
 import structs
 import importlib
-import networkx as nx
 import graphviz
+import matplotlib
 
 importlib.reload(structs)
 
@@ -18,7 +18,8 @@ gene_nodes = {}
 
 # global dictionary of expression data
 exp_dict = {}
-# 
+
+# extracting and wrangling data
 def extract_expression_data(df):
     '''
     This function extracts the necessary information from 
@@ -47,6 +48,24 @@ def sort_genes(path, sep):
             tfs.append(gene)
     return tfs, targets
 
+def filter_df():
+    # reading data
+    dir = "/Users/jingliu/Documents/haase/IDEA_data"
+    file = "idea_tall_expression_data.tsv"
+    path = os.path.join(dir, file)
+    df = pd.read_csv(path, sep='\t')
+
+    # restricting nodes
+    gene_dir = '/Users/jingliu/Documents/haase/haase_lab'
+    gene_file = 'genes_sorted.csv'
+    gene_path = os.path.join(gene_dir, gene_file)
+    tfs, targets = sort_genes(gene_path, ',')
+    df = df[df['TF'].isin(tfs) & df['GeneName'].isin(targets)]
+    if df.empty:
+        raise Exception("DataFrame is empty. Please check the input TFs and target genes.")
+    return df
+
+# using sigmoidal fit to retrieve gene expression info
 def get_t_act(tf, gene, amp_thresh):
     '''
     row (pandas Series): row from the original DataFrame
@@ -57,7 +76,6 @@ def get_t_act(tf, gene, amp_thresh):
         return None, None
     return opt[1], (opt[0] > 0)
 
-# borrowed from online: https://stackoverflow.com/questions/55725139/fit-sigmoid-function-s-shape-curve-to-data-using-python
 def sigmoid(x, L ,x0, k, b):
     y = L / (1 + np.exp(-k*(x-x0))) + b
     return y
@@ -90,12 +108,21 @@ def sigmoid_curve_fit(tf, gene):
     
     try:
         # Curve fitting with bounds and method specified
-        opt, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=10000)
+        opt, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
         return opt
     except Exception as e:
         print(f"An error occurred - TF: {tf}, target: {gene}")
         return None
 
+# building heat maps
+def heat_maps():
+    norm = matplotlib.colors.Normalize(-1.5,1.5)
+    colors = [[norm(-1.5), "cyan"],
+          [norm(0), "black"],
+         [norm(1.5), "yellow"]]
+    haase = matplotlib.colors.LinearSegmentedColormap.from_list("", colors)
+
+# network construction
 def build_tree(tf, t_thresh, amp_thresh):
     '''
     Create a tree structure with a height of 1 for a given TF.
@@ -134,46 +161,28 @@ def visualize_gene_network(gene_nodes):
             else:
                 arrowhead = 'tee'
             dot.edge(gene, edge.target.gene, color='black', arrowhead=arrowhead)
-            edges_df.loc[len(edges_df.index)] = [gene, edge.target.gene, arrowhead]
-            # edges_df = pd.concat([globals()[gene].gene, edge.target.gene, arrowhead], ignore_index=True)
     edges_df.to_csv("edges.csv", index=False)
 
     # Render the graph
     dot.render('gene_network', view=True)
 
-def build_network(tfs):
+def build_network(df):
     '''
     The primary function for building the overall network.
     tfs (list): list of strings representing TFs
     '''
+    tfs = df['TF'].unique()
     for tf in tfs:
         build_tree(tf, 20, 0.2) # dummy thresholds
 
     visualize_gene_network(gene_nodes)
 
 def main():
-    # reading data
-    dir = "/Users/jingliu/Documents/haase/IDEA_data"
-    file = "idea_tall_expression_data.tsv"
-    path = os.path.join(dir, file)
-    df = pd.read_csv(path, sep='\t')
+    df = filter_df()
 
-    # restricting nodes
-    gene_dir = '/Users/jingliu/Documents/haase/haase_lab'
-    gene_file = 'genes_sorted.csv'
-    gene_path = os.path.join(gene_dir, gene_file)
-    tfs, targets = sort_genes(gene_path, ',')
-    # tfs = ['ACA1']
-    # targets = ['AAC1']
-    df = df[df['TF'].isin(tfs) & df['GeneName'].isin(targets)]
-    tfs = df['TF'].unique()
-    targets = df['GeneName'].unique()
-    if df.empty:
-        raise Exception("DataFrame is empty. Please check the input TFs and target genes.")
-    df.to_csv("filtered_data.csv", index=False)
     # reformat data and build network
     extract_expression_data(df)
-    build_network(tfs)
+    build_network(df)
 
 if __name__ == '__main__':
     main()
