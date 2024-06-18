@@ -26,8 +26,22 @@ exp_dict = {}
 # extracting and wrangling data
 def extract_expression_data(df):
     '''
-    This function extracts the necessary information from 
-    df (pandas DataFrame): contains all data
+    This function extracts the necessary information from the DataFrame and stores it into global dictionary exp_dict.
+    exp_dict is formatted like this:
+        {
+            TF1: {
+                target_gene1: [(time, log2_cleaned_ratio), (time, log2_cleaned_ratio), ...],
+                target_gene2: [(time, log2_cleaned_ratio), (time, log2_cleaned_ratio), ...],
+                ...
+            }
+            TF2: {
+                target_gene1: [(time, log2_cleaned_ratio), (time, log2_cleaned_ratio), ...],
+                target_gene2: [(time, log2_cleaned_ratio), (time, log2_cleaned_ratio), ...],
+                ...
+            }
+        }
+    Parameters:
+    df (pandas DataFrame): contains all data derived from gene expression data file
     '''
     for _, row in df.iterrows():
         tf = row['TF']
@@ -40,6 +54,16 @@ def extract_expression_data(df):
                                    row['log2_cleaned_ratio']])
 
 def sort_genes(path, sep):
+    '''
+    Returns the list of TFs and targets to be included in GRN based on information found in an input file. 
+    Parameters:
+    path (string): path of the input file
+    sep (string): separator to parse input file
+
+    Returns:
+    tfs (list of strings): list of TFs
+    targets (list of strings): list of target genes
+    '''
     df = pd.read_csv(path, sep=sep)
     tfs = []
     targets = []
@@ -53,6 +77,9 @@ def sort_genes(path, sep):
     return tfs, targets
 
 def filter_df(path, gene_path):
+    '''
+    
+    '''
     # reading data
     df = pd.read_csv(path, sep='\t')
 
@@ -68,7 +95,14 @@ def filter_df(path, gene_path):
 
 def cluster_expression_levels(df):
     cluster_df = pd.DataFrame(columns=['TF', 'GeneName', 'cluster'])
-    
+    tfs = df['TF'].unique()
+    for tf in tfs:
+        tf_data = df[df['TF'] == tf]
+        genes = tf_data['GeneName'].unique()
+        for gene in genes:
+            cluster = 1 # temporary placeholder
+            cluster_df.loc[len(cluster_df.index)] = [tf, gene, cluster]
+
 
 # using sigmoidal fit to retrieve gene expression info
 def get_t_act(tf, gene, amp_thresh):
@@ -196,6 +230,7 @@ def visualize_gene_network(gene_nodes):
             else:
                 arrowhead = 'tee'
             dot.edge(gene, edge.target.gene, color='black', arrowhead=arrowhead)
+            edges_df.loc[len(edges_df.index)] = [gene, edge.target.gene, arrowhead]
     edges_df.to_csv("edges.csv", index=False)
 
     # Render the graph
