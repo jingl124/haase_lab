@@ -218,8 +218,7 @@ def create_heat_maps(df):
         sns.heatmap(heatmap_data, cmap=haase, cbar=True, vmin=-2, vmax=2, ax=ax)
         ax.set_title(tf)
         ax.set_ylabel('')  
-        # plt.xticks(rotation=45)  
-        # plt.yticks(rotation=0, fontsize=5)
+
         # Get GeneNames for manual tick placement
         gene_names = heatmap_data.index.to_numpy()
 
@@ -305,12 +304,12 @@ def main():
 
     df = filter_df(path, gene_path)
 
-    # create heat maps
-    create_heat_maps(df)
+    # # create heat maps
+    # create_heat_maps(df)
 
-    # # reformat data and build network
-    # extract_expression_data(df)
-    # build_network(df)
+    # reformat data and build network
+    extract_expression_data(df)
+    build_network(df)
 
 if __name__ == '__main__':
     main()
