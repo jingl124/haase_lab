@@ -37,7 +37,6 @@ YOX1,YHP1,tee
 YOX1,YOX1,normal
 FKH1,CDC20,normal
 FKH1,CLB2,normal
-FKH1,CLN2,normal
 FKH1,FKH1,normal
 FKH1,HCM1,normal
 FKH1,PLM2,tee
@@ -101,10 +100,8 @@ YHP1,TOS4,normal
 YHP1,WHI5,normal
 YHP1,YOX1,tee
 FKH2,CDH1,normal
-FKH2,CLB1,tee
 FKH2,CLN2,tee
 FKH2,FKH2,normal
-FKH2,HCM1,tee
 FKH2,MBP1,tee
 FKH2,NRM1,tee
 FKH2,PLM2,tee

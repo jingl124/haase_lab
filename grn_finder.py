@@ -4,16 +4,12 @@ import scipy.optimize
 import seaborn as sns
 import scipy
 import matplotlib.pyplot as plt
-import glob
 import numpy as np
 import structs
 import importlib
 import graphviz
 import matplotlib
 import math
-from sklearn.cluster import KMeans
-from tslearn.clustering import KShape
-from tslearn.preprocessing import TimeSeriesScalerMeanVariance
 
 importlib.reload(structs)
 
@@ -287,6 +283,7 @@ def build_network(df):
     Parameters:
     df (pandas DataFrame): contains gene expression data of desired TFs and targets
     '''
+    extract_expression_data(df)
     tfs = df['TF'].unique()
     for tf in tfs:
         build_tree(tf, 20, 0.2) # dummy thresholds
@@ -308,7 +305,6 @@ def main():
     # create_heat_maps(df)
 
     # reformat data and build network
-    extract_expression_data(df)
     build_network(df)
 
 if __name__ == '__main__':
