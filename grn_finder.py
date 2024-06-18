@@ -78,7 +78,14 @@ def sort_genes(path, sep):
 
 def filter_df(path, gene_path):
     '''
-    
+    Read input files to store data of desired TFs and targets into a pandas DataFrame.
+
+    Parameters: 
+    path (string): input file containing all gene expression data of all TFs and targets
+    gene_path (string): input file containing TFs and targets
+
+    Returns: 
+    df (pandas DataFrame): contains gene expression data of TFs and targets
     '''
     # reading data
     df = pd.read_csv(path, sep='\t')
@@ -93,22 +100,20 @@ def filter_df(path, gene_path):
     df = df[['TF', 'GeneName', 'time', 'log2_cleaned_ratio']]
     return df
 
-def cluster_expression_levels(df):
-    cluster_df = pd.DataFrame(columns=['TF', 'GeneName', 'cluster'])
-    tfs = df['TF'].unique()
-    for tf in tfs:
-        tf_data = df[df['TF'] == tf]
-        genes = tf_data['GeneName'].unique()
-        for gene in genes:
-            cluster = 1 # temporary placeholder
-            cluster_df.loc[len(cluster_df.index)] = [tf, gene, cluster]
-
-
 # using sigmoidal fit to retrieve gene expression info
-def get_t_act(tf, gene, amp_thresh):
+def get_sig_info(tf, gene, amp_thresh):
     '''
-    row (pandas Series): row from the original DataFrame
-    return: time of activation/inhibition, and whether its activation or not (boolean)
+    Retrieve whether the interaction is activation/inhibition and when it occurs based on sigmoidal curve fit. 
+    This is based on the t1/2 of the sigmoidal curve.
+    
+    Parameters:
+    tf (string): 
+    gene (string): 
+    amp_thresh (int or float): the minimum amplitude of the sigmoidal curve to be considered activation/inhibition
+
+    Returns:
+    time of activation/inhibition (float)
+    whether its activation or not (boolean)
     '''
     opt = sigmoid_curve_fit(tf, gene) # [L_opt, x0_opt, k_opt, b_opt]
     if opt is None or len(opt) == 0 or abs(opt[0]) < amp_thresh:
@@ -155,7 +160,12 @@ def sigmoid_curve_fit(tf, gene):
 
 # building heat maps
 def heat_map_colors():
-
+    '''
+    Set the color scheme of heat map to Haase lab colors.
+    
+    Returns:
+    haase (matplotlib.colors.LinearSegmentedColormap): color scheme
+    '''
     norm = matplotlib.colors.Normalize(-1.5,1.5)
     colors = [[norm(-1.5), "cyan"],
           [norm(0), "black"],
@@ -164,6 +174,13 @@ def heat_map_colors():
     return haase
 
 def create_heat_maps(df):
+    '''
+    Build heat maps based on gene expression levels, and creates .png file containing output. 
+    Arrange subplots based on TF. 
+
+    Parameters:
+    df (pandas DataFrame): gene expression data of desired TFs and targets
+    '''
     # run heat_map_colors() to get haase color scheme
     haase = heat_map_colors()
 
@@ -195,9 +212,11 @@ def create_heat_maps(df):
 def build_tree(tf, t_thresh, amp_thresh):
     '''
     Create a tree structure with a height of 1 for a given TF.
+
+    Parameters:
     tf (string): TF
-    t_thresh: time threshold for direct connection
-    amp_thresh: minimum amplitude threshold for activation/inhibition
+    t_thresh (float): time threshold for direct connection
+    amp_thresh (int or float): minimum amplitude threshold for activation/inhibition
     '''
     # initializing the root node if it doesn't exist already
     if tf not in gene_nodes:
@@ -207,14 +226,18 @@ def build_tree(tf, t_thresh, amp_thresh):
 
     # establish edges  
     for gene in exp_dict[tf].keys():
-        time, sign = get_t_act(tf, gene, amp_thresh)
+        time, sign = get_sig_info(tf, gene, amp_thresh)
         if time is not None and time > 0 and time < t_thresh:
             if gene not in gene_nodes:
                 gene_nodes[gene] = structs.GeneNode(gene)
             target = gene_nodes[gene]
             node.add_edge(target, sign) 
         
-def visualize_gene_network(gene_nodes):
+def visualize_gene_network():
+    '''
+    Create visualization of GRN using graphviz package. 
+    Output stored in a .pdf file.
+    '''
     dot = graphviz.Digraph(comment='Gene Regulatory Network')
     
     # Add nodes
@@ -239,13 +262,15 @@ def visualize_gene_network(gene_nodes):
 def build_network(df):
     '''
     The primary function for building the overall network.
-    tfs (list): list of strings representing TFs
+    
+    Parameters:
+    df (pandas DataFrame): contains gene expression data of desired TFs and targets
     '''
     tfs = df['TF'].unique()
     for tf in tfs:
         build_tree(tf, 20, 0.2) # dummy thresholds
 
-    visualize_gene_network(gene_nodes)
+    visualize_gene_network()
 
 def main():
     dir = "/Users/jingliu/Documents/haase/IDEA_data"
