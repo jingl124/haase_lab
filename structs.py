@@ -9,10 +9,6 @@ class GeneNode:
     
     def add_edge(self, t, a):
         edge = Edge(t, a)
-        # # if we have a global edge tracker in grn_finder.py, then we don't need this for loop
-        # for e in self.edges:
-        #     if e.target == t and e.act == a:
-        #         return
         self.edges.append(edge)
 
 class Edge:

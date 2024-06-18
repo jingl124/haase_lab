@@ -125,9 +125,15 @@ def sigmoid(x, L ,x0, k, b):
     return y
 
 def scale_data(data):
-    """
+    '''
     Scale the data to a range suitable for fitting.
-    """
+
+    Parameters: 
+    data (list of floats): expression level data for one TF-target pair
+
+    Returns:
+    (list of floats): rescaled version of expression level data
+    '''
     data_min = min(data)
     data_max = max(data)
     if data_max == data_min:
@@ -136,7 +142,14 @@ def scale_data(data):
 
 def sigmoid_curve_fit(tf, gene):
     '''
-    time_series: list of data from log2_cleaned_ratio
+    Find the sigmoidal curve of best fit.
+
+    Parameters:
+    tf (string): name of TF
+    gene (string): name of target gene
+
+    Returns: 
+    opt (list): sigmoidal curve constants [L ,x0, k, b]
     '''
     time_series = exp_dict[tf][gene]
     xdata = []
@@ -201,9 +214,18 @@ def create_heat_maps(df):
         heatmap_data = tf_data.pivot(index='GeneName', columns='time', values='log2_cleaned_ratio')
 
         # Make subplot
-        plt.subplot(num_rows, num_cols, i + 1)
-        sns.heatmap(heatmap_data, cmap=haase, cbar=True)
-        plt.title(tf)
+        ax = plt.subplot(num_rows, num_cols, i + 1)
+        sns.heatmap(heatmap_data, cmap=haase, cbar=True, vmin=-2, vmax=2, ax=ax)
+        ax.set_title(tf)
+        ax.set_ylabel('')  
+        # plt.xticks(rotation=45)  
+        # plt.yticks(rotation=0, fontsize=5)
+        # Get GeneNames for manual tick placement
+        gene_names = heatmap_data.index.to_numpy()
+
+        # set tick positions and labels
+        ax.set_yticks(np.arange(len(gene_names)) + 0.3, labels=gene_names, fontsize=6)
+        plt.xticks(rotation=45)  
 
     plt.savefig("heat_maps.png")
     plt.show()
@@ -262,7 +284,7 @@ def visualize_gene_network():
 def build_network(df):
     '''
     The primary function for building the overall network.
-    
+
     Parameters:
     df (pandas DataFrame): contains gene expression data of desired TFs and targets
     '''

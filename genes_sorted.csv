@@ -2,10 +2,10 @@
 CLN1,target
 CLN2,target
 CLN3,target
-CLB1,_
+CLB1,target
 CLB2,target
 CLB3,target
-CLB4,_
+CLB4,target
 CLB5,target
 CLB6,target
 YOX1,target tf
@@ -15,14 +15,14 @@ HCM1,target tf
 PLM2,target tf
 TOS4,target tf
 SWI4,target tf
-SWI5,target
-SWI6,target
+SWI5,target tf
+SWI6,target tf
 ACE2,target tf
 NDD1,target tf
 FKH1,target tf
 FKH2,target tf
 MCM1,target tf
-WHI5,target
+WHI5,target tf
 STB1,target tf
 MBP1,target tf
 CDH1,target
