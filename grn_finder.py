@@ -96,6 +96,17 @@ def filter_df(path, gene_path):
     df = df[['TF', 'GeneName', 'time', 'log2_cleaned_ratio']]
     return df
 
+def read_peak_times():
+    '''
+    Read peak expression times of genes.
+
+    Returns:
+    peak_times (pandas DataFrame): peak times of present genes
+    '''
+    df = pd.read_csv('peak_times.csv')
+    peak_times = df[df['Genes'].isin(gene_nodes)]
+    return peak_times
+
 # using sigmoidal fit to retrieve gene expression info
 def get_sig_info(tf, gene, amp_thresh):
     '''
