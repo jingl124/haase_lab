@@ -271,7 +271,7 @@ def visualize_gene_network():
                 arrowhead = 'tee'
             dot.edge(gene, edge.target.gene, color='black', arrowhead=arrowhead)
             edges_df.loc[len(edges_df.index)] = [gene, edge.target.gene, arrowhead]
-    edges_df.to_csv("edges.csv", index=False)
+    edges_df.to_csv("grn_edges.csv", index=False)
 
     # Render the graph
     dot.render('gene_network', view=True)
@@ -308,6 +308,4 @@ def main():
     build_network(df)
 
 if __name__ == '__main__':
-    main()
-    
-    
+    main()   
