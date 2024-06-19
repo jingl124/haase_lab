@@ -26,6 +26,7 @@ def construct_nodes(path):
     file = open(path, 'r')
     nodes = file.readlines()
     for node in nodes:
+        node = node.strip()
         gene_nodes[node] = structs.GeneNode(node)
     
 def construct_edges(path, sep=','):
@@ -37,7 +38,7 @@ def construct_edges(path, sep=','):
     sep (string): separator for reading in input file, default is for .csv
     '''
     edges_df = pd.read_csv(path, sep=sep)
-    for row in edges_df.iterrows():
+    for _, row in edges_df.iterrows():
         reg = gene_nodes[row['reg']]
         target = gene_nodes[row['target']]
         act = row['type'] == 'act'
@@ -50,8 +51,8 @@ def build_ref_graph():
     '''
     # build GeneNode data structure
     dir = "/Users/jingliu/Documents/haase/haase_lab"
-    node_path = os.path.join(dir, "Cell_cycle_GRN_gene.txt")
-    edge_path = os.path.join(dir, "")
+    node_path = os.path.join("Cell_cycle_GRN_gene.txt")
+    edge_path = os.path.join(dir, "ref_edges.csv")
     construct_nodes(node_path)
     construct_edges(edge_path)
 
