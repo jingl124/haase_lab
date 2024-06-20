@@ -204,14 +204,17 @@ def create_heat_maps(df):
     # run heat_map_colors() to get haase color scheme
     haase = heat_map_colors()
 
-    # create plot
-    fig = plt.figure(figsize = (15,10))
-    fig.subplots_adjust(hspace=0.4, wspace=0.4, top = 0.90)
-    fig.suptitle("IDEA Dataset Expression Levels", fontsize = 15)
+    # num_cols and num_rows to determine dimensions of plot and subplots
     tfs = df['TF'].unique()
     num_tfs = len(tfs)
     num_cols = 4
     num_rows = math.ceil(num_tfs / num_cols)
+
+    # create plot
+    fig = plt.figure(figsize = (15,10 + num_rows * 3))
+    fig.subplots_adjust(hspace=0.4, wspace=0.4, top = 0.90)
+    fig.suptitle("IDEA Dataset Expression Levels", fontsize = 15)
+    
 
     for i, tf in enumerate(tfs):    
         # Filter data for the specific TF
@@ -224,13 +227,14 @@ def create_heat_maps(df):
         ax = plt.subplot(num_rows, num_cols, i + 1)
         sns.heatmap(heatmap_data, cmap=haase, cbar=True, vmin=-2, vmax=2, ax=ax)
         ax.set_title(tf)
+        ax.set_xlabel('time (min)')
         ax.set_ylabel('')  
 
         # Get GeneNames for manual tick placement
         gene_names = heatmap_data.index.to_numpy()
 
         # set tick positions and labels
-        ax.set_yticks(np.arange(len(gene_names)) + 0.3, labels=gene_names, fontsize=6)
+        ax.set_yticks(np.arange(len(gene_names)) + 0.25, labels=gene_names, fontsize=6)
         plt.xticks(rotation=45)  
 
     plt.savefig("heat_maps.png")
