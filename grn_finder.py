@@ -312,11 +312,11 @@ def main():
 
     df = filter_df(path, gene_path)
 
-    # # create heat maps
-    # create_heat_maps(df)
+    # create heat maps
+    create_heat_maps(df)
 
-    # reformat data and build network
-    build_network(df)
+    # # reformat data and build network
+    # build_network(df)
 
 if __name__ == '__main__':
     main()   
