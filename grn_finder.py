@@ -231,9 +231,9 @@ def create_heat_maps(df):
         ax.set_ylabel('')  
 
         # set tick positions and labels
-        times = np.array([0.0, 5.0, 10.0, 15.0, 20.0, 30.0, 45.0, 90.0])
+        # times = np.array([0.0, 5.0, 10.0, 15.0, 20.0, 30.0, 45.0, 90.0])
         gene_names = heatmap_data.index.to_numpy()
-        ax.set_xticks(np.arange(len(times)), labels=times)
+        # ax.set_xticks(np.arange(len(times)), labels=times)
         ax.set_yticks(np.arange(len(gene_names)) + 0.25, labels=gene_names, fontsize=6)
         plt.xticks(rotation=45)  
 
