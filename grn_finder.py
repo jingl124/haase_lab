@@ -305,6 +305,21 @@ def build_network(df):
 
     visualize_gene_network()
 
+# compare with reference graph
+def compare_edges(ref, grn):
+    '''
+    Compare edges in ref_edges.csv and grn_edges.csv to find agreements and discrepancies.
+
+    Parameters:
+    ref (string): path to ref_edges.csv
+    grn (string): path to grn_edges.csv
+
+    Returns: 
+    both (list of Edges): Edges found in both files
+    refs (list of Edges): Edges found only in ref_edges.csv and not in grn_edges.csv
+    grns (list of Edges): Edges found only in grn_edges.csv and not in ref_edges.csv
+    '''
+
 def main():
     dir = "/Users/jingliu/Documents/haase/IDEA_data"
     file = "idea_tall_expression_data.tsv"
