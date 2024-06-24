@@ -277,7 +277,7 @@ def visualize_gene_network():
         dot.node(gene_nodes[gene].gene, shape='box')
     
     # Add edges
-    edges_df = pd.DataFrame(columns=['TF', 'GeneName', 'arrowhead'])
+    edges_df = pd.DataFrame(columns=['reg', 'target', 'type'])
     for gene in gene_nodes:
         for edge in gene_nodes[gene].edges:
             if edge.act:
@@ -285,7 +285,7 @@ def visualize_gene_network():
             else:
                 arrowhead = 'tee'
             dot.edge(gene, edge.target.gene, color='black', arrowhead=arrowhead)
-            edges_df.loc[len(edges_df.index)] = [gene, edge.target.gene, arrowhead]
+            edges_df.loc[len(edges_df.index)] = [gene, edge.target.gene, 'act' if arrowhead == 'normal' else 'rep']
     edges_df.to_csv("grn_edges.csv", index=False)
 
     # Render the graph
@@ -319,6 +319,29 @@ def compare_edges(ref, grn):
     refs (list of Edges): Edges found only in ref_edges.csv and not in grn_edges.csv
     grns (list of Edges): Edges found only in grn_edges.csv and not in ref_edges.csv
     '''
+    # read csv files into DataFrames
+    ref_df = pd.read_csv(ref)
+    grn_df = pd.read_csv(grn)
+
+    # get common edges
+    common_rows = pd.merge(ref_df, grn_df, how='inner')
+
+def df_to_edges(df):
+    '''
+    Given a pandas DataFrame containing edge information, return the Edges listed.
+
+    Parameters: 
+    df (pandas DataFrame): input DataFrame with columns 'reg', 'target', and 'type'
+
+    Returns:
+    edges (list of Edges): the list of Edges corresponding to the input df
+    '''
+    edges = []
+    for _, row in df.iterrows():
+        reg = gene_nodes[row['reg']]
+        edge = reg.get_edge()
+
+
 
 def main():
     dir = "/Users/jingliu/Documents/haase/IDEA_data"
