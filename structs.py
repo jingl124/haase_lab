@@ -22,7 +22,7 @@ class GeneNode:
         Returns: 
         edge (Edge): Edge containing t and proper regualtion type
         '''
-        for edge in self.e:
+        for edge in self.edges:
             if edge.target == t:
                 if edge.act == a:
                     return edge

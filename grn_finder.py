@@ -279,16 +279,22 @@ def visualize_gene_network():
         dot.node(gene_nodes[gene].gene, shape='box')
     
     # Add edges
-    # edges_df = pd.DataFrame(columns=['reg', 'target', 'type'])
+    both, refs, grns = compare_edges('ref_edges.csv', 'grn_edges.csv')
     for gene in gene_nodes:
         for edge in gene_nodes[gene].edges:
+            # determine arrowhead
             if edge.act:
                 arrowhead = 'normal'
             else:
                 arrowhead = 'tee'
-            dot.edge(gene, edge.target.gene, color='black', arrowhead=arrowhead)
-    #         edges_df.loc[len(edges_df.index)] = [gene, edge.target.gene, 'act' if arrowhead == 'normal' else 'rep']
-    # edges_df.to_csv("grn_edges.csv", index=False)
+            # determine edge color
+            if edge in both:
+                color = 'green'
+            elif edge in refs:
+                color = 'blue'
+            else:
+                color = 'red'
+            dot.edge(gene, edge.target.gene, color=color, arrowhead=arrowhead)
 
     # Render the graph
     dot.render('gene_network', view=True)
