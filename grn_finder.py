@@ -257,13 +257,16 @@ def build_tree(tf, t_thresh, amp_thresh):
     node = gene_nodes[tf]
 
     # establish edges  
-    for gene in exp_dict[tf].keys():
+    edges_df = pd.DataFrame(columns=['reg', 'target', 'type'])
+    for gene in exp_dict[tf].keys(): # target
         time, sign = get_sig_info(tf, gene, amp_thresh)
         if time is not None and time > 0 and time < t_thresh:
             if gene not in gene_nodes:
                 gene_nodes[gene] = structs.GeneNode(gene)
             target = gene_nodes[gene]
             node.add_edge(target, sign) 
+            edges_df.loc[len(edges_df.index)] = [tf, gene, 'act' if sign else 'rep']
+    edges_df.to_csv("grn_edges.csv", index=False)
         
 def visualize_gene_network():
     '''
@@ -325,6 +328,17 @@ def compare_edges(ref, grn):
 
     # get common edges
     common_rows = pd.merge(ref_df, grn_df, how='inner')
+    both = df_to_edges(common_rows)
+
+    # get edges that are diff
+    ref_rows = pd.merge(ref_df, grn_df, how='left').drop_duplicates(keep=False)
+    refs = df_to_edges(ref_rows)
+
+    grn_rows = pd.merge(ref_df, grn_df, how='right').drop_duplicates(keep=False)
+    grns = df_to_edges(grn_rows)
+
+    # return lists of Edges
+    return both, refs, grns
 
 def df_to_edges(df):
     '''
@@ -339,9 +353,11 @@ def df_to_edges(df):
     edges = []
     for _, row in df.iterrows():
         reg = gene_nodes[row['reg']]
-        edge = reg.get_edge()
-
-
+        target = gene_nodes[row['target']]
+        act = row['type'] == 'act'
+        edge = reg.get_edge(target, act)
+        edges.append(edge)
+    return edges
 
 def main():
     dir = "/Users/jingliu/Documents/haase/IDEA_data"
