@@ -289,11 +289,13 @@ def visualize_gene_network():
                 arrowhead = 'tee'
             # determine edge color
             if edge in both:
-                color = 'green'
+                color = '#008000'
             elif edge in refs:
-                color = 'blue'
+                color = '#0059b3'
+            elif edge in grns:
+                color = '#b30000'
             else:
-                color = 'red'
+                print("edge error")
             dot.edge(gene, edge.target.gene, color=color, arrowhead=arrowhead)
 
     # Render the graph
