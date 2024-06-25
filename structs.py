@@ -8,6 +8,15 @@ class GeneNode:
         self.edges = e if e is not None else []
     
     def add_edge(self, t, a):
+        '''
+        Add edge if it doesn't already exist.
+
+        Parameters:
+        t (GeneNode): target of Edge
+        a (boolean): True if Edge is activating, False if Edge is inhibiting
+        '''
+        if self.get_edge(t, a) is not None:
+            return
         edge = Edge(t, a)
         self.edges.append(edge)
 

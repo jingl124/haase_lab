@@ -122,13 +122,17 @@ def get_sig_info(tf, gene, amp_thresh):
     time of activation/inhibition (float)
     whether its activation or not (boolean)
     '''
-    opt = sigmoid_curve_fit(tf, gene) # [L_opt, x0_opt, k_opt, b_opt] or [L1, x01, k1, b1, L2, x02, k2, b2]
-    if opt is None or len(opt) == 0 or abs(opt[0]) < amp_thresh:
+    params = sigmoid_curve_fit(tf, gene) # [L_opt, x0_opt, k_opt, b_opt] or [L1, x01, k1, b1, L2, x02, k2, b2]
+    if params is None or len(params) == 0 or abs(params[0]) < amp_thresh:
         return None, None
-    return opt[1], (opt[0] > 0)
+    return params[1], (params[0] > 0)
 
 def sigmoid(x, L ,x0, k, b):
     y = L / (1 + np.exp(-k*(x-x0))) + b
+    return y
+
+def double_sigmoid(x, L1, x01, k1, b1, L2, x02, k2, b2):
+    y = (L1 / (1 + np.exp(-k1 * (x - x01))) + b1) + (L2 / (1 + np.exp(-k2 * (x - x02))) + b2)
     return y
 
 def scale_data(data):
@@ -149,14 +153,14 @@ def scale_data(data):
 
 def sigmoid_curve_fit(tf, gene):
     '''
-    Find the sigmoidal curve of best fit.
+    Find the sigmoidal curve of best fit (single or double).
 
     Parameters:
     tf (string): name of TF
     gene (string): name of target gene
 
     Returns: 
-    opt (list): sigmoidal curve constants [L ,x0, k, b]
+    params (list): sigmoidal curve constants [L ,x0, k, b]
     '''
     time_series = exp_dict[tf][gene]
     xdata = []
@@ -165,21 +169,23 @@ def sigmoid_curve_fit(tf, gene):
         xdata.append(time[0])
         ydata.append(time[1])
     ydata = scale_data(ydata)
-    p0 = [max(ydata), np.median(xdata), 1, min(ydata)]
-    
-    # Bounds for the parameters to ensure positive x0, and k, but allow L and b to be any value
-    bounds = ([-np.inf, 0, 0, -np.inf], [np.inf, np.inf, np.inf, np.inf])
+    p0 = [max(ydata), np.median(xdata), 1, min(ydata)]    
     
     try:
         # Curve fitting with bounds and method specified
-        opt, _ = curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
-        return opt
+        bounds = ([-np.inf, 0, 0, -np.inf], [np.inf, np.inf, np.inf, np.inf])
+        params, _ = curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
+        return params
+    # except Exception:
+    #     pass
+    # try:
+    #     bounds = ([-np.inf, 0, 0, -np.inf, -np.inf, 0, 0, -np.inf], 
+    #               [np.inf, np.inf, np.inf, np.inf, -np.inf, 0, 0, -np.inf])
+    #     params, _ = curve_fit(double_sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
+    #     return params
     except Exception as e:
         print(f"{e} - TF: {tf}, target: {gene}")
         return None
-
-def double_sigmoid(x, L1, x01, k1, b1, L2, x02, k2, b2):
-    return (L1 / (1 + np.exp(-k1 * (x - x01))) + b1) + (L2 / (1 + np.exp(-k2 * (x - x02))) + b2)
 
 # building heat maps
 def heat_map_colors():
@@ -244,6 +250,26 @@ def create_heat_maps(df):
     plt.show()
 
 # network construction
+def build_ref_network():
+    df = pd.read_csv('ref_edges.csv')
+    for _, row in df.iterrows():
+        tf = row['reg']
+        if tf not in gene_nodes:
+            gene_nodes[tf] = structs.GeneNode(tf)
+        tf_node = gene_nodes[tf]
+
+        target = row['target']
+        if target not in gene_nodes:
+            gene_nodes[target] = structs.GeneNode(target)
+        target_node = gene_nodes[target]
+
+        act = row['type'] == 'act'
+
+        edge = tf_node.get_edge(target_node, act)
+        if edge is None:
+            tf_node.add_edge(target_node, act)
+
+
 def build_tree(tf, t_thresh, amp_thresh, edges_df):
     '''
     Create a tree structure with a height of 1 for a given TF.
@@ -315,7 +341,7 @@ def build_network(df):
     tfs = df['TF'].unique()
     edges_df = pd.DataFrame(columns=['reg', 'target', 'type'])
     for tf in tfs:
-        build_tree(tf, 20, 0.2, edges_df) # dummy thresholds
+        build_tree(tf, 15, 0.5, edges_df) # dummy thresholds
     edges_df.to_csv("grn_edges.csv", index=False)
 
     visualize_gene_network()
@@ -364,8 +390,10 @@ def df_to_edges(df):
     '''
     edges = []
     for _, row in df.iterrows():
-        reg = gene_nodes[row['reg']]
-        target = gene_nodes[row['target']]
+        reg = gene_nodes[row['reg']] if row['reg'] in gene_nodes else None
+        target = gene_nodes[row['target']] if row['target'] in gene_nodes else None
+        if reg == None or target == None:
+            break
         act = row['type'] == 'act'
         edge = reg.get_edge(target, act)
         edges.append(edge)
@@ -386,6 +414,7 @@ def main():
     # create_heat_maps(df)
 
     # reformat data and build network
+    build_ref_network()
     build_network(df)
 
 if __name__ == '__main__':
