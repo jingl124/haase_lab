@@ -241,7 +241,7 @@ def create_heat_maps(df):
     plt.show()
 
 # network construction
-def build_tree(tf, t_thresh, amp_thresh):
+def build_tree(tf, t_thresh, amp_thresh, edges_df):
     '''
     Create a tree structure with a height of 1 for a given TF.
 
@@ -249,6 +249,7 @@ def build_tree(tf, t_thresh, amp_thresh):
     tf (string): TF
     t_thresh (float): time threshold for direct connection
     amp_thresh (int or float): minimum amplitude threshold for activation/inhibition
+    edges_df (pandas DataFrame): running DataFrame of current Edges
     '''
     # initializing the root node if it doesn't exist already
     if tf not in gene_nodes:
@@ -257,7 +258,6 @@ def build_tree(tf, t_thresh, amp_thresh):
     node = gene_nodes[tf]
 
     # establish edges  
-    edges_df = pd.DataFrame(columns=['reg', 'target', 'type'])
     for gene in exp_dict[tf].keys(): # target
         time, sign = get_sig_info(tf, gene, amp_thresh)
         if time is not None and time > 0 and time < t_thresh:
@@ -266,7 +266,6 @@ def build_tree(tf, t_thresh, amp_thresh):
             target = gene_nodes[gene]
             node.add_edge(target, sign) 
             edges_df.loc[len(edges_df.index)] = [tf, gene, 'act' if sign else 'rep']
-    edges_df.to_csv("grn_edges.csv", index=False)
         
 def visualize_gene_network():
     '''
@@ -280,7 +279,7 @@ def visualize_gene_network():
         dot.node(gene_nodes[gene].gene, shape='box')
     
     # Add edges
-    edges_df = pd.DataFrame(columns=['reg', 'target', 'type'])
+    # edges_df = pd.DataFrame(columns=['reg', 'target', 'type'])
     for gene in gene_nodes:
         for edge in gene_nodes[gene].edges:
             if edge.act:
@@ -288,8 +287,8 @@ def visualize_gene_network():
             else:
                 arrowhead = 'tee'
             dot.edge(gene, edge.target.gene, color='black', arrowhead=arrowhead)
-            edges_df.loc[len(edges_df.index)] = [gene, edge.target.gene, 'act' if arrowhead == 'normal' else 'rep']
-    edges_df.to_csv("grn_edges.csv", index=False)
+    #         edges_df.loc[len(edges_df.index)] = [gene, edge.target.gene, 'act' if arrowhead == 'normal' else 'rep']
+    # edges_df.to_csv("grn_edges.csv", index=False)
 
     # Render the graph
     dot.render('gene_network', view=True)
@@ -303,8 +302,10 @@ def build_network(df):
     '''
     extract_expression_data(df)
     tfs = df['TF'].unique()
+    edges_df = pd.DataFrame(columns=['reg', 'target', 'type'])
     for tf in tfs:
-        build_tree(tf, 20, 0.2) # dummy thresholds
+        build_tree(tf, 20, 0.2, edges_df) # dummy thresholds
+    edges_df.to_csv("grn_edges.csv", index=False)
 
     visualize_gene_network()
 
@@ -370,11 +371,11 @@ def main():
 
     df = filter_df(path, gene_path)
 
-    # create heat maps
-    create_heat_maps(df)
+    # # create heat maps
+    # create_heat_maps(df)
 
-    # # reformat data and build network
-    # build_network(df)
+    # reformat data and build network
+    build_network(df)
 
 if __name__ == '__main__':
     main()   
