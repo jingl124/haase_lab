@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-import scipy.optimize
+from scipy.optimize import curve_fit
 import seaborn as sns
 import scipy
 import matplotlib.pyplot as plt
@@ -114,15 +114,15 @@ def get_sig_info(tf, gene, amp_thresh):
     This is based on the t1/2 of the sigmoidal curve.
     
     Parameters:
-    tf (string): 
-    gene (string): 
+    tf (string): name of TF
+    gene (string): name of target gene
     amp_thresh (int or float): the minimum amplitude of the sigmoidal curve to be considered activation/inhibition
 
     Returns:
     time of activation/inhibition (float)
     whether its activation or not (boolean)
     '''
-    opt = sigmoid_curve_fit(tf, gene) # [L_opt, x0_opt, k_opt, b_opt]
+    opt = sigmoid_curve_fit(tf, gene) # [L_opt, x0_opt, k_opt, b_opt] or [L1, x01, k1, b1, L2, x02, k2, b2]
     if opt is None or len(opt) == 0 or abs(opt[0]) < amp_thresh:
         return None, None
     return opt[1], (opt[0] > 0)
@@ -172,11 +172,14 @@ def sigmoid_curve_fit(tf, gene):
     
     try:
         # Curve fitting with bounds and method specified
-        opt, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
+        opt, _ = curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
         return opt
     except Exception as e:
         print(f"{e} - TF: {tf}, target: {gene}")
         return None
+
+def double_sigmoid(x, L1, x01, k1, b1, L2, x02, k2, b2):
+    return (L1 / (1 + np.exp(-k1 * (x - x01))) + b1) + (L2 / (1 + np.exp(-k2 * (x - x02))) + b2)
 
 # building heat maps
 def heat_map_colors():
