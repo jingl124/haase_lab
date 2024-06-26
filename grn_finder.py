@@ -297,17 +297,13 @@ def build_tree(tf, t_thresh, amp_thresh, edges_df):
             node.add_edge(target, sign) 
             edges_df.loc[len(edges_df.index)] = [tf, gene, 'act' if sign else 'rep']
         
-def visualize_gene_network():
+def visualize_gene_network(timestamp):
     '''
     Create visualization of GRN using graphviz package. 
     Output stored in a .pdf file.
     '''
     # produce ref graph
     build_ref_network()
-
-    # get timestamp
-    ct = datetime.datetime.now()
-    timestamp = ct.strftime("%Y-%m-%d %H:%M:%S")
 
     # create digraph
     dot = graphviz.Digraph(comment='Gene Regulatory Network')
@@ -346,14 +342,24 @@ def build_network(df):
     Parameters:
     df (pandas DataFrame): contains gene expression data of desired TFs and targets
     '''
+    # get timestamp
+    ct = datetime.datetime.now()
+    timestamp = ct.strftime("%Y-%m-%d %H:%M:%S")
+
+    # build network
     extract_expression_data(df)
     tfs = df['TF'].unique()
     edges_df = pd.DataFrame(columns=['reg', 'target', 'type'])
+    thresh_df = pd.DataFrame(columns=['reg', 't_thresh', 'amp_thresh'])
     for tf in tfs:
-        build_tree(tf, 15, 0.5, edges_df) # dummy thresholds
+        t_thresh = 15
+        amp_thresh = 0.5
+        build_tree(tf, t_thresh, amp_thresh, edges_df) # dummy thresholds
+        thresh_df.loc[len(thresh_df.index)] = [tf, t_thresh, amp_thresh]
     edges_df.to_csv("grn_edges.csv", index=False)
+    thresh_df.to_csv(f"grn_params/params_{timestamp}.csv", index=False)
 
-    visualize_gene_network()
+    visualize_gene_network(timestamp)
 
 # compare with reference graph
 def compare_edges(ref, grn):
