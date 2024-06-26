@@ -252,6 +252,9 @@ def create_heat_maps(df):
 
 # network construction
 def build_ref_network():
+    '''
+    Build cell cycle reference network on top of generated GRN. 
+    '''
     df = pd.read_csv('ref_edges.csv')
     for _, row in df.iterrows():
         tf = row['reg']
@@ -313,7 +316,7 @@ def visualize_gene_network(timestamp):
         dot.node(gene_nodes[gene].gene, shape='box')
     
     # Add edges
-    network_edges(dot)
+    network_edges(dot, timestamp)
 
     # create legend
     create_legend(dot)
@@ -329,11 +332,11 @@ def create_legend(dot):
     dot (Digraph): the given Digraph in graphviz
     '''
     with dot.subgraph(name='cluster_legend') as legend:
-        legend.attr(label='Legend', labelloc='t', fontsize='20', rankdir='LR')
+        legend.attr(label='Legend', labelloc='t', fontsize='20')
     
-        legend.node('both_legend', 'Both', shape='plaintext')
-        legend.node('refs_legend', 'Refs', shape='plaintext')
-        legend.node('grns_legend', 'GRNs', shape='plaintext')
+        legend.node('both_legend', 'In both graphs', shape='plaintext')
+        legend.node('refs_legend', 'Only found in reference graph', shape='plaintext')
+        legend.node('grns_legend', 'Only found in algorithmic graph', shape='plaintext')
         
         # Creating colored edges for legend
         legend.node('legend_space1', '', width='0.1', shape='plaintext')
@@ -344,14 +347,14 @@ def create_legend(dot):
         legend.edge('refs_legend', 'legend_space2', color='#0059b3', arrowhead='none')
         legend.edge('grns_legend', 'legend_space3', color='#b30000', arrowhead='none')
 
-def network_edges(dot):
+def network_edges(dot, timestamp):
     '''
     Create edges in a given Digraph.
 
     Parameters:
     dot (Digraph): the given Digraph in graphviz
     '''
-    both, refs, grns = compare_edges('ref_edges.csv', 'grn_edges.csv')
+    both, refs, grns = compare_edges('ref_edges.csv', f'grn_edges/grn_edges_{timestamp}.csv')
     for gene in gene_nodes:
         for edge in gene_nodes[gene].edges:
             # determine arrowhead
@@ -388,10 +391,10 @@ def build_network(df):
     thresh_df = pd.DataFrame(columns=['reg', 't_thresh', 'amp_thresh'])
     for tf in tfs:
         t_thresh = 15
-        amp_thresh = 0.5
+        amp_thresh = 0.6
         build_tree(tf, t_thresh, amp_thresh, edges_df) # dummy thresholds
         thresh_df.loc[len(thresh_df.index)] = [tf, t_thresh, amp_thresh]
-    edges_df.to_csv("grn_edges.csv", index=False)
+    edges_df.to_csv(f"grn_edges/grn_edges_{timestamp}.csv", index=False)
     thresh_df.to_csv(f"grn_params/params_{timestamp}.csv", index=False)
 
     visualize_gene_network(timestamp)
@@ -456,7 +459,7 @@ def main():
     path = os.path.join(dir, file)
 
     gene_dir = '/Users/jingliu/Documents/haase/haase_lab'
-    gene_file = 'genes_sorted.csv'
+    gene_file = 'genes_info.csv'
     gene_path = os.path.join(gene_dir, gene_file)
 
     df = filter_df(path, gene_path)

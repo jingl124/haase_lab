@@ -1,13 +1,7 @@
 reg,target,type
 ACE2,ACE2,act
-ACE2,CLN1,rep
-ACE2,CLN3,act
-FKH1,CLB2,act
 FKH1,CLN2,act
 FKH1,FKH1,act
-FKH1,PLM2,rep
-FKH1,SWI6,rep
-FKH2,CLB1,rep
 FKH2,FKH2,act
 FKH2,MBP1,rep
 FKH2,PLM2,rep
@@ -45,7 +39,6 @@ SWI6,CLB5,act
 SWI6,CLB6,act
 SWI6,CLN1,act
 SWI6,CLN2,act
-SWI6,HCM1,act
 SWI6,SWI6,act
 SWI6,YOX1,act
 WHI5,WHI5,act
