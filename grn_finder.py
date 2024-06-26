@@ -313,6 +313,44 @@ def visualize_gene_network(timestamp):
         dot.node(gene_nodes[gene].gene, shape='box')
     
     # Add edges
+    network_edges(dot)
+
+    # create legend
+    create_legend(dot)
+
+    # Render the graph
+    dot.render(f'grns/gene_network_{timestamp}', view=True)
+
+def create_legend(dot):
+    '''
+    Create a legend on a given Digraph in graphviz.
+
+    Parameters: 
+    dot (Digraph): the given Digraph in graphviz
+    '''
+    with dot.subgraph(name='cluster_legend') as legend:
+        legend.attr(label='Legend', labelloc='t', fontsize='20', rankdir='LR')
+    
+        legend.node('both_legend', 'Both', shape='plaintext')
+        legend.node('refs_legend', 'Refs', shape='plaintext')
+        legend.node('grns_legend', 'GRNs', shape='plaintext')
+        
+        # Creating colored edges for legend
+        legend.node('legend_space1', '', width='0.1', shape='plaintext')
+        legend.node('legend_space2', '', width='0.1', shape='plaintext')
+        legend.node('legend_space3', '', width='0.1', shape='plaintext')
+        
+        legend.edge('both_legend', 'legend_space1', color='#008000', arrowhead='none')
+        legend.edge('refs_legend', 'legend_space2', color='#0059b3', arrowhead='none')
+        legend.edge('grns_legend', 'legend_space3', color='#b30000', arrowhead='none')
+
+def network_edges(dot):
+    '''
+    Create edges in a given Digraph.
+
+    Parameters:
+    dot (Digraph): the given Digraph in graphviz
+    '''
     both, refs, grns = compare_edges('ref_edges.csv', 'grn_edges.csv')
     for gene in gene_nodes:
         for edge in gene_nodes[gene].edges:
@@ -331,9 +369,6 @@ def visualize_gene_network(timestamp):
             else:
                 print("edge error")
             dot.edge(gene, edge.target.gene, color=color, arrowhead=arrowhead)
-
-    # Render the graph
-    dot.render(f'grns/gene_network_{timestamp}', view=True)
 
 def build_network(df):
     '''
