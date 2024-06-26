@@ -10,6 +10,7 @@ import importlib
 import graphviz
 import matplotlib
 import math
+import datetime
 
 importlib.reload(structs)
 
@@ -301,6 +302,14 @@ def visualize_gene_network():
     Create visualization of GRN using graphviz package. 
     Output stored in a .pdf file.
     '''
+    # produce ref graph
+    build_ref_network()
+
+    # get timestamp
+    ct = datetime.datetime.now()
+    timestamp = ct.strftime("%Y-%m-%d %H:%M:%S")
+
+    # create digraph
     dot = graphviz.Digraph(comment='Gene Regulatory Network')
     
     # Add nodes
@@ -328,7 +337,7 @@ def visualize_gene_network():
             dot.edge(gene, edge.target.gene, color=color, arrowhead=arrowhead)
 
     # Render the graph
-    dot.render('gene_network', view=True)
+    dot.render(f'grns/gene_network_{timestamp}', view=True)
 
 def build_network(df):
     '''
@@ -399,6 +408,7 @@ def df_to_edges(df):
         edges.append(edge)
     return edges
 
+# main function
 def main():
     dir = "/Users/jingliu/Documents/haase/IDEA_data"
     file = "idea_tall_expression_data.tsv"
@@ -414,7 +424,6 @@ def main():
     # create_heat_maps(df)
 
     # reformat data and build network
-    build_ref_network()
     build_network(df)
 
 if __name__ == '__main__':
