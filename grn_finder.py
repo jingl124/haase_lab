@@ -10,7 +10,8 @@ import graphviz
 import matplotlib
 import math
 import datetime
-import sklearn
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
 
 importlib.reload(structs)
 
@@ -114,8 +115,11 @@ def extract_features(series):
     valleys, _ = scipy.signal.find_peaks(-series)
     slope = np.gradient(series)
     curvature = np.gradient(slope)
-    fft_values = np.abs(scipy.fft.fft(series))
+    series_np = series.to_numpy() if isinstance(series, pd.Series) else np.array(series)
+    fft_values = np.abs(scipy.fft.fft(series_np))
     dominant_freq = np.argmax(fft_values[1:len(fft_values)//2]) + 1  # Ignore the zero frequency
+    # fft_values = np.abs(scipy.fft.fft(series))
+    # dominant_freq = np.argmax(fft_values[1:len(fft_values)//2]) + 1  # Ignore the zero frequency
     
     features = {
         'num_peaks': len(peaks),
@@ -123,7 +127,7 @@ def extract_features(series):
         'mean_slope': np.mean(slope),
         'mean_curvature': np.mean(curvature),
         'dominant_freq': dominant_freq,
-        'peak_to_peak_amplitude': np.max(series) - np.min(series)
+        # 'peak_to_peak_amplitude': np.max(series) - np.min(series)
     }
     return features
 
@@ -138,11 +142,11 @@ def classify_time_series():
     feature_df = pd.DataFrame(feature_list)
 
     # Scale features
-    scaler = sklearn.preprocessing.StandardScaler()
+    scaler = StandardScaler()
     features_scaled = scaler.fit_transform(feature_df)
 
     # Apply KMeans clustering
-    kmeans = sklearn.cluster.KMeans(n_clusters=3, random_state=42)
+    kmeans = KMeans(n_clusters=3, random_state=42)
     clusters = kmeans.fit_predict(features_scaled)
     feature_df['cluster'] = clusters
 
@@ -511,14 +515,15 @@ def main():
     # build_network(df)
     extract_expression_data(df)
     feature_df = classify_time_series()
-    for cluster in range(3):
-        cluster_series = df.columns[feature_df['cluster'] == cluster]
-        plt.figure(figsize=(10, 6))
-        for series in cluster_series[:5]:  # Plot first 5 series for brevity
-            plt.plot(df[series], label=series)
-        plt.title(f'Cluster {cluster}')
-        plt.legend()
-        plt.show()
+    print(feature_df)
+    # for cluster in range(3):
+    #     cluster_series = df.columns[feature_df['cluster'] == cluster]
+    #     plt.figure(figsize=(10, 6))
+    #     for series in cluster_series[:5]:  # Plot first 5 series for brevity
+    #         plt.plot(df[series], label=series)
+    #     plt.title(f'Cluster {cluster}')
+    #     plt.legend()
+    #     plt.show()
 
 if __name__ == '__main__':
     main()   
