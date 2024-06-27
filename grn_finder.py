@@ -225,7 +225,7 @@ def sigmoid_curve_fit(tf, gene):
     try:
         # Curve fitting with bounds and method specified
         bounds = ([-np.inf, 0, 0, -np.inf], [np.inf, np.inf, np.inf, np.inf])
-        params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
+        params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=10000)
         return params
     # except Exception:
     #     pass
@@ -366,10 +366,18 @@ def visualize_gene_network(timestamp):
         dot.node(gene_nodes[gene].gene, shape='box')
     
     # Add edges
-    network_edges(dot, timestamp)
+    both, refs, grns = network_edges(dot, timestamp)
 
     # create legend
     create_legend(dot)
+
+    edge_counts_text = (
+        f"Number of common edges: {len(both)}\n"
+        f"Number of edges in only ref: {len(refs)}\n"
+        f"Number of edges in only grn: {len(grns)}"
+    )
+    dot.node('edge_counts', label=edge_counts_text, shape='plaintext', fontsize='12')
+    # dot.edge('edge_counts', 'main_annotation', style='invis')  # Link text to main annotation invisibly
 
     # Render the graph
     dot.render(f'grns/gene_network_{timestamp}', view=True)
@@ -420,8 +428,9 @@ def network_edges(dot, timestamp):
             elif edge in grns:
                 color = '#b30000'
             else:
-                print("edge error")
+                color = 'black'
             dot.edge(gene, edge.target.gene, color=color, arrowhead=arrowhead)
+    return both, refs, grns
 
 def build_network(df):
     '''
@@ -467,16 +476,46 @@ def compare_edges(ref, grn):
     ref_df = pd.read_csv(ref)
     grn_df = pd.read_csv(grn)
 
-    # get common edges
-    common_rows = pd.merge(ref_df, grn_df, how='inner')
-    both = df_to_edges(common_rows)
+    # # get common edges
+    # common_rows = pd.merge(ref_df, grn_df, how='inner')
+    # both = df_to_edges(common_rows)
 
-    # get edges that are diff
-    ref_rows = pd.merge(ref_df, grn_df, how='left').drop_duplicates(keep=False)
-    refs = df_to_edges(ref_rows)
+    # # get edges that are diff
+    # ref_rows = pd.merge(ref_df, grn_df, how='left').drop_duplicates(keep=False)
+    # refs = df_to_edges(ref_rows)
 
-    grn_rows = pd.merge(ref_df, grn_df, how='right').drop_duplicates(keep=False)
-    grns = df_to_edges(grn_rows)
+    # grn_rows = pd.merge(ref_df, grn_df, how='right').drop_duplicates(keep=False)
+    # grns = df_to_edges(grn_rows)
+    # Convert DataFrame rows to sets of tuples
+    ref_edges = set(tuple(row) for row in ref_df.to_records(index=False))
+    grn_edges = set(tuple(row) for row in grn_df.to_records(index=False))
+
+    # Find common edges
+    both = ref_edges & grn_edges
+
+    # Find edges only in ref_edges.csv
+    refs = ref_edges - grn_edges
+
+    # Find edges only in grn_edges.csv
+    grns = grn_edges - ref_edges
+
+    # Convert sets back to lists of tuples
+    both = list(both)
+    refs = list(refs)
+    grns = list(grns)
+
+    # convert to Edges
+    for i in range(len(both)):
+        temp = both[i]
+        both[i] = gene_nodes[temp[0]].get_edge(gene_nodes[temp[1]], temp[2]=='act')
+
+    for i in range(len(refs)):
+        temp = refs[i]
+        refs[i] = gene_nodes[temp[0]].get_edge(gene_nodes[temp[1]], temp[2]=='act')
+    
+    for i in range(len(grns)):
+        temp = grns[i]
+        grns[i] = gene_nodes[temp[0]].get_edge(gene_nodes[temp[1]], temp[2]=='act')
 
     # return lists of Edges
     return both, refs, grns
