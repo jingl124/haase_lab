@@ -1,6 +1,5 @@
 import pandas as pd
 import os
-from scipy.optimize import curve_fit
 import seaborn as sns
 import scipy
 import matplotlib.pyplot as plt
@@ -11,6 +10,7 @@ import graphviz
 import matplotlib
 import math
 import datetime
+import sklearn
 
 importlib.reload(structs)
 
@@ -49,6 +49,7 @@ def extract_expression_data(df):
             exp_dict[tf][gene] = []  # Initialize list for gene if not present
         exp_dict[tf][gene].append([row['time'],
                                    row['log2_cleaned_ratio']])
+    return exp_dict
 
 def sort_genes(path, sep):
     '''
@@ -99,7 +100,7 @@ def filter_df(path, gene_path):
 
 def read_peak_times():
     '''
-    Read peak expression times of genes.
+    Read peak expression times of genes to plot nodes on a timeline.
 
     Returns:
     peak_times (pandas DataFrame): peak times of present genes
@@ -107,6 +108,45 @@ def read_peak_times():
     df = pd.read_csv('peak_times.csv')
     peak_times = df[df['Genes'].isin(gene_nodes)]
     return peak_times
+
+def extract_features(series):
+    peaks, _ = scipy.signal.find_peaks(series)
+    valleys, _ = scipy.signal.find_peaks(-series)
+    slope = np.gradient(series)
+    curvature = np.gradient(slope)
+    fft_values = np.abs(scipy.fft.fft(series))
+    dominant_freq = np.argmax(fft_values[1:len(fft_values)//2]) + 1  # Ignore the zero frequency
+    
+    features = {
+        'num_peaks': len(peaks),
+        'num_valleys': len(valleys),
+        'mean_slope': np.mean(slope),
+        'mean_curvature': np.mean(curvature),
+        'dominant_freq': dominant_freq,
+        'peak_to_peak_amplitude': np.max(series) - np.min(series)
+    }
+    return features
+
+def classify_time_series():
+    feature_list = []
+    for tf in exp_dict:
+        for target in exp_dict[tf]:
+            time_series_data = exp_dict[tf][target]
+            times, values = zip(*time_series_data)
+            series = pd.Series(data=values, index=times)
+            feature_list.append(extract_features(series))
+    feature_df = pd.DataFrame(feature_list)
+
+    # Scale features
+    scaler = sklearn.preprocessing.StandardScaler()
+    features_scaled = scaler.fit_transform(feature_df)
+
+    # Apply KMeans clustering
+    kmeans = sklearn.cluster.KMeans(n_clusters=3, random_state=42)
+    clusters = kmeans.fit_predict(features_scaled)
+    feature_df['cluster'] = clusters
+
+    return feature_df
 
 # using sigmoidal fit to retrieve gene expression info
 def get_sig_info(tf, gene, amp_thresh):
@@ -175,7 +215,7 @@ def sigmoid_curve_fit(tf, gene):
     try:
         # Curve fitting with bounds and method specified
         bounds = ([-np.inf, 0, 0, -np.inf], [np.inf, np.inf, np.inf, np.inf])
-        params, _ = curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
+        params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
         return params
     # except Exception:
     #     pass
@@ -467,8 +507,18 @@ def main():
     # # create heat maps
     # create_heat_maps(df)
 
-    # reformat data and build network
-    build_network(df)
+    # # reformat data and build network
+    # build_network(df)
+    extract_expression_data(df)
+    feature_df = classify_time_series()
+    for cluster in range(3):
+        cluster_series = df.columns[feature_df['cluster'] == cluster]
+        plt.figure(figsize=(10, 6))
+        for series in cluster_series[:5]:  # Plot first 5 series for brevity
+            plt.plot(df[series], label=series)
+        plt.title(f'Cluster {cluster}')
+        plt.legend()
+        plt.show()
 
 if __name__ == '__main__':
     main()   
