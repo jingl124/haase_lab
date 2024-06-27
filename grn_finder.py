@@ -127,7 +127,7 @@ def extract_features(series):
         'mean_slope': np.mean(slope),
         'mean_curvature': np.mean(curvature),
         'dominant_freq': dominant_freq,
-        # 'peak_to_peak_amplitude': np.max(series) - np.min(series)
+        'peak_to_peak_amplitude': np.max(series) - np.min(series)
     }
     return features
 
@@ -137,16 +137,22 @@ def classify_time_series():
         for target in exp_dict[tf]:
             time_series_data = exp_dict[tf][target]
             times, values = zip(*time_series_data)
+            values = scale_data(values)
             series = pd.Series(data=values, index=times)
-            feature_list.append(extract_features(series))
+            row = extract_features(series)
+            row.update({'TF': tf, 'target': target})
+            feature_list.append(row)
     feature_df = pd.DataFrame(feature_list)
 
     # Scale features
+    columns_to_scale = feature_df.columns.difference(['TF', 'target'])
     scaler = StandardScaler()
-    features_scaled = scaler.fit_transform(feature_df)
+    scaled_df = feature_df[columns_to_scale]
+    print(scaled_df)
+    features_scaled = scaler.fit_transform(scaled_df)
 
     # Apply KMeans clustering
-    kmeans = KMeans(n_clusters=3, random_state=42)
+    kmeans = KMeans(n_clusters=5, random_state=42)
     clusters = kmeans.fit_predict(features_scaled)
     feature_df['cluster'] = clusters
 
@@ -511,16 +517,20 @@ def main():
     # # create heat maps
     # create_heat_maps(df)
 
-    # # reformat data and build network
-    # build_network(df)
-    extract_expression_data(df)
-    feature_df = classify_time_series()
-    print(feature_df)
-    # for cluster in range(3):
-    #     cluster_series = df.columns[feature_df['cluster'] == cluster]
+    # reformat data and build network
+    build_network(df)
+    # extract_expression_data(df)
+    # feature_df = classify_time_series()
+    # print(feature_df)
+    # for cluster in range(5):
+    #     cluster_df = feature_df[feature_df['cluster'] == cluster]
     #     plt.figure(figsize=(10, 6))
-    #     for series in cluster_series[:5]:  # Plot first 5 series for brevity
-    #         plt.plot(df[series], label=series)
+    #     for _, row in cluster_df.head().iterrows():  # Plot first 5 series for brevity
+    #         tf = row['TF']
+    #         target = row['target']
+    #         time_series = exp_dict[tf][target]
+    #         timestamps, values = zip(*time_series)
+    #         plt.plot(timestamps, values, marker='o', linestyle='-')
     #     plt.title(f'Cluster {cluster}')
     #     plt.legend()
     #     plt.show()
