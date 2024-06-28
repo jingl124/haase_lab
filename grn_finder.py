@@ -222,7 +222,7 @@ def sigmoid_curve_fit(tf, gene):
     for time in time_series:
         xdata.append(time[0])
         ydata.append(time[1])
-    ydata = scale_data(ydata)
+    # ydata = scale_data(ydata)
     p0 = [max(ydata), np.median(xdata), 1, min(ydata)]    
     
     try:
@@ -448,8 +448,8 @@ def build_network(df):
     edges_df = pd.DataFrame(columns=['reg', 'target', 'type'])
     thresh_df = pd.DataFrame(columns=['reg', 't_thresh', 'amp_thresh'])
     for tf in tfs:
-        t_thresh = 15
-        amp_thresh = 0.6
+        t_thresh = 17
+        amp_thresh = 0.2
         build_tree(tf, t_thresh, amp_thresh, edges_df) # dummy thresholds
         thresh_df.loc[len(thresh_df.index)] = [tf, t_thresh, amp_thresh]
     edges_df.to_csv(f"grn_edges/grn_edges_{timestamp}.csv", index=False)
