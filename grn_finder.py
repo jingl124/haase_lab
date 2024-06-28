@@ -236,7 +236,7 @@ def sigmoid_curve_fit(tf, gene):
     try:
         # Curve fitting with bounds and method specified
         bounds = ([-np.inf, 0, 0, -np.inf], [np.inf, np.inf, np.inf, np.inf])
-        params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=10000)
+        params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
         return params
     # except Exception:
     #     pass
@@ -578,6 +578,9 @@ def main():
     gene_path = os.path.join(gene_dir, gene_file)
 
     df = filter_df(path, gene_path)
+
+    thresh_df = pd.DataFrame(gene_path)
+    thresh_df = thresh_df.columns.difference(['type'])
 
     # # create heat maps
     # create_heat_maps(df)
