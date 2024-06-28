@@ -10,8 +10,8 @@ import graphviz
 import matplotlib
 import math
 import datetime
-# from sklearn.preprocessing import StandardScaler
-# from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
 
 importlib.reload(structs)
 
