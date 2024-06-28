@@ -10,8 +10,8 @@ import graphviz
 import matplotlib
 import math
 import datetime
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
+# from sklearn.preprocessing import StandardScaler
+# from sklearn.cluster import KMeans
 
 importlib.reload(structs)
 
@@ -115,22 +115,30 @@ def read_peak_times():
 
 def extract_features(series):
     peaks, _ = scipy.signal.find_peaks(series)
-    valleys, _ = scipy.signal.find_peaks(-series)
+    valleys, _ = scipy.signal.find_peaks(series * -1)
     slope = np.gradient(series)
     curvature = np.gradient(slope)
-    series_np = series.to_numpy() if isinstance(series, pd.Series) else np.array(series)
-    fft_values = np.abs(scipy.fft.fft(series_np))
+    scaled_series_np = series.to_numpy() if isinstance(series, pd.Series) else np.array(series)
+    fft_values = np.abs(scipy.fft.fft(scaled_series_np))
     dominant_freq = np.argmax(fft_values[1:len(fft_values)//2]) + 1  # Ignore the zero frequency
     # fft_values = np.abs(scipy.fft.fft(series))
     # dominant_freq = np.argmax(fft_values[1:len(fft_values)//2]) + 1  # Ignore the zero frequency
     
+
     features = {
         'num_peaks': len(peaks),
         'num_valleys': len(valleys),
         'mean_slope': np.mean(slope),
         'mean_curvature': np.mean(curvature),
         'dominant_freq': dominant_freq,
-        'peak_to_peak_amplitude': np.max(series) - np.min(series)
+        # 'peak_to_peak_amplitude': np.max(series) - np.min(series),
+        # 'variance': np.var(series),
+        'skewness': scipy.stats.skew(series),
+        'kurtosis': scipy.stats.kurtosis(series),
+        # 'mean_value': np.mean(series),
+        # 'std_deviation': np.std(series),
+        # 'max_value': np.max(series),
+        # 'min_value': np.min(series)
     }
     return features
 
@@ -155,7 +163,7 @@ def classify_time_series():
     features_scaled = scaler.fit_transform(scaled_df)
 
     # Apply KMeans clustering
-    kmeans = KMeans(n_clusters=5, random_state=42)
+    kmeans = KMeans(n_clusters=3, random_state=42)
     clusters = kmeans.fit_predict(features_scaled)
     feature_df['cluster'] = clusters
 
@@ -191,7 +199,7 @@ def double_sigmoid(x, L1, x01, k1, b1, L2, x02, k2, b2):
 
 def scale_data(data):
     '''
-    Scale the data to a range suitable for fitting.
+    Scale the data to a range suitable for clustering.
 
     Parameters: 
     data (list of floats): expression level data for one TF-target pair
@@ -204,6 +212,7 @@ def scale_data(data):
     if data_max == data_min:
         return [0 for _ in data]
     return [(d - data_min) / (data_max - data_min) for d in data]
+
 
 def sigmoid_curve_fit(tf, gene):
     '''
@@ -222,7 +231,6 @@ def sigmoid_curve_fit(tf, gene):
     for time in time_series:
         xdata.append(time[0])
         ydata.append(time[1])
-    # ydata = scale_data(ydata)
     p0 = [max(ydata), np.median(xdata), 1, min(ydata)]    
     
     try:
@@ -579,10 +587,10 @@ def main():
     # extract_expression_data(df)
     # feature_df = classify_time_series()
     # print(feature_df)
-    # for cluster in range(5):
+    # for cluster in range(3):
     #     cluster_df = feature_df[feature_df['cluster'] == cluster]
     #     plt.figure(figsize=(10, 6))
-    #     for _, row in cluster_df.head().iterrows():  # Plot first 5 series for brevity
+    #     for _, row in cluster_df.iterrows():  # Plot first 5 series for brevity
     #         tf = row['TF']
     #         target = row['target']
     #         time_series = exp_dict[tf][target]
