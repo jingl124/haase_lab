@@ -461,7 +461,8 @@ def build_network(df):
 # compare with reference graph
 def compare_edges(ref, grn):
     '''
-    Compare edges in ref_edges.csv and grn_edges.csv to find agreements and discrepancies.
+    Compare edges in ref_edges.csv and grn_edges.csv to find agreements and discrepancies. 
+    Outputs a .csv file of edges (i.e. reg and target) and which list they belong in.
 
     Parameters:
     ref (string): path to ref_edges.csv
@@ -504,18 +505,36 @@ def compare_edges(ref, grn):
     refs = list(refs)
     grns = list(grns)
 
-    # convert to Edges
+    # DataFrame of all edges to be converted to .csv file
+    edges_df = pd.DataFrame(columns=['reg', 'target', 'act', 'group'])
+
+    # convert to Edges and add to edges_df
     for i in range(len(both)):
         temp = both[i]
-        both[i] = gene_nodes[temp[0]].get_edge(gene_nodes[temp[1]], temp[2]=='act')
+        reg = temp[0]
+        target = temp[1]
+        act = temp[2] == 'act'
+        both[i] = gene_nodes[reg].get_edge(gene_nodes[target], act)
+        edges_df.loc[len(edges_df.index)] = [reg, target, act, 'both']
 
     for i in range(len(refs)):
         temp = refs[i]
-        refs[i] = gene_nodes[temp[0]].get_edge(gene_nodes[temp[1]], temp[2]=='act')
+        reg = temp[0]
+        target = temp[1]
+        act = temp[2] == 'act'
+        refs[i] = gene_nodes[reg].get_edge(gene_nodes[target], act)
+        edges_df.loc[len(edges_df.index)] = [reg, target, act, 'refs']
     
     for i in range(len(grns)):
         temp = grns[i]
-        grns[i] = gene_nodes[temp[0]].get_edge(gene_nodes[temp[1]], temp[2]=='act')
+        reg = temp[0]
+        target = temp[1]
+        act = temp[2] == 'act'
+        grns[i] = gene_nodes[reg].get_edge(gene_nodes[target], act)
+        edges_df.loc[len(edges_df.index)] = [reg, target, act, 'grns']
+
+    # render .csv file
+    edges_df.to_csv("/edges_info/edges_info_{}.csv")
 
     # return lists of Edges
     return both, refs, grns
