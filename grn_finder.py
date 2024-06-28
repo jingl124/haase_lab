@@ -21,6 +21,9 @@ gene_nodes = {}
 # global dictionary of expression data
 exp_dict = {}
 
+# global timestamp
+timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 # extracting and wrangling data
 def extract_expression_data(df):
     '''
@@ -350,7 +353,7 @@ def build_tree(tf, t_thresh, amp_thresh, edges_df):
             node.add_edge(target, sign) 
             edges_df.loc[len(edges_df.index)] = [tf, gene, 'act' if sign else 'rep']
         
-def visualize_gene_network(timestamp):
+def visualize_gene_network():
     '''
     Create visualization of GRN using graphviz package. 
     Output stored in a .pdf file.
@@ -366,7 +369,7 @@ def visualize_gene_network(timestamp):
         dot.node(gene_nodes[gene].gene, shape='box')
     
     # Add edges
-    both, refs, grns = network_edges(dot, timestamp)
+    both, refs, grns = network_edges(dot)
 
     # create legend
     create_legend(dot)
@@ -405,7 +408,7 @@ def create_legend(dot):
         legend.edge('refs_legend', 'legend_space2', color='#0059b3', arrowhead='none')
         legend.edge('grns_legend', 'legend_space3', color='#b30000', arrowhead='none')
 
-def network_edges(dot, timestamp):
+def network_edges(dot):
     '''
     Create edges in a given Digraph.
 
@@ -439,10 +442,6 @@ def build_network(df):
     Parameters:
     df (pandas DataFrame): contains gene expression data of desired TFs and targets
     '''
-    # get timestamp
-    ct = datetime.datetime.now()
-    timestamp = ct.strftime("%Y-%m-%d %H:%M:%S")
-
     # build network
     extract_expression_data(df)
     tfs = df['TF'].unique()
@@ -456,7 +455,7 @@ def build_network(df):
     edges_df.to_csv(f"grn_edges/grn_edges_{timestamp}.csv", index=False)
     thresh_df.to_csv(f"grn_params/params_{timestamp}.csv", index=False)
 
-    visualize_gene_network(timestamp)
+    visualize_gene_network()
 
 # compare with reference graph
 def compare_edges(ref, grn):
@@ -534,7 +533,7 @@ def compare_edges(ref, grn):
         edges_df.loc[len(edges_df.index)] = [reg, target, act, 'grns']
 
     # render .csv file
-    edges_df.to_csv("/edges_info/edges_info_{}.csv")
+    edges_df.to_csv(f"edges_info/edges_info_{timestamp}.csv")
 
     # return lists of Edges
     return both, refs, grns
