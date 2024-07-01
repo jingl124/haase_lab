@@ -144,9 +144,9 @@ def extract_features(series):
         'skewness': scipy.stats.skew(series),
         'kurtosis': scipy.stats.kurtosis(series),
         'mean_value': np.mean(series),
-        'std_deviation': np.std(series),
-        'max_value': np.max(series),
-        'min_value': np.min(series)
+        'std_deviation': np.std(series)
+        # 'max_value': np.max(series),
+        # 'min_value': np.min(series)
     }
     return features
 
@@ -187,7 +187,7 @@ def classify_time_series():
     # plt.show()
 
     # Apply KMeans clustering
-    kmeans = KMeans(n_clusters=6, random_state=2)
+    kmeans = KMeans(n_clusters=7, random_state=2)
     clusters = kmeans.fit_predict(features_scaled)
     feature_df['cluster'] = clusters
 
@@ -609,23 +609,24 @@ def main():
     # # create heat maps
     # create_heat_maps(df)
 
-    # # reformat data and build network
-    # build_network(df)
-    extract_expression_data(df)
-    feature_df = classify_time_series()
-    print(feature_df)
-    for cluster in range(6):
-        cluster_df = feature_df[feature_df['cluster'] == cluster]
-        plt.figure(figsize=(10, 6))
-        for _, row in cluster_df.head().iterrows():  # Plot first 5 series for brevity
-            tf = row['TF']
-            target = row['target']
-            time_series = exp_dict[tf][target]
-            timestamps, values = zip(*time_series)
-            plt.plot(timestamps, scale_data(values), marker='o', linestyle='-')
-        plt.title(f'Cluster {cluster}')
-        plt.legend()
-        plt.show()
+    # reformat data and build network
+    build_network(df)
+    # extract_expression_data(df)
+    # feature_df = classify_time_series()
+    # print(feature_df)
+    # for cluster in range(7):
+    #     cluster_df = feature_df[feature_df['cluster'] == cluster]
+    #     plt.figure(figsize=(10, 6))
+    #     for _, row in cluster_df.head().iterrows():  # Plot first 5 series for brevity
+    #         tf = row['TF']
+    #         target = row['target']
+    #         time_series = exp_dict[tf][target]
+    #         timestamps, values = zip(*time_series)
+    #         plt.plot(timestamps, values, marker='o', linestyle='-')
+    #         plt.plot(timestamps, scale_data(values), marker='o', linestyle='-')
+    #     plt.title(f'Cluster {cluster}')
+    #     plt.legend()
+    #     plt.show()
 
 if __name__ == '__main__':
     main()   
