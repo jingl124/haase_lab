@@ -178,7 +178,7 @@ def classify_time_series():
     return feature_df
 
 # using sigmoidal fit to retrieve gene expression info
-def get_sig_info(tf, gene, amp_thresh):
+def get_sig_info(tf, gene):
     '''
     Retrieve whether the interaction is activation/inhibition and when it occurs based on sigmoidal curve fit. 
     This is based on the t1/2 of the sigmoidal curve.
@@ -186,13 +186,13 @@ def get_sig_info(tf, gene, amp_thresh):
     Parameters:
     tf (string): name of TF
     gene (string): name of target gene
-    amp_thresh (int or float): the minimum amplitude of the sigmoidal curve to be considered activation/inhibition
 
     Returns:
     time of activation/inhibition (float)
     whether its activation or not (boolean)
     '''
     params = sigmoid_curve_fit(tf, gene) # [L_opt, x0_opt, k_opt, b_opt] or [L1, x01, k1, b1, L2, x02, k2, b2]
+    amp_thresh = thresh_df.loc[thresh_df['gene'] == tf, 'amp_thresh'].values[0]
     if params is None or len(params) == 0 or abs(params[0]) < amp_thresh:
         return None, None
     return params[1], (params[0] > 0)
@@ -343,25 +343,25 @@ def build_ref_network():
             tf_node.add_edge(target_node, act)
 
 
-def build_tree(tf, t_thresh, amp_thresh, edges_df):
+def build_tree(tf, edges_df):
     '''
     Create a tree structure with a height of 1 for a given TF.
 
     Parameters:
     tf (string): TF
-    t_thresh (float): time threshold for direct connection
-    amp_thresh (int or float): minimum amplitude threshold for activation/inhibition
     edges_df (pandas DataFrame): running DataFrame of current Edges
     '''
+    # get time threshold
+    t_thresh = thresh_df.loc[thresh_df['gene'] == tf, 't_thresh'].values[0]
+
     # initializing the root node if it doesn't exist already
     if tf not in gene_nodes:
         gene_nodes[tf] = structs.GeneNode(tf)
-    
     node = gene_nodes[tf]
 
     # establish edges  
     for gene in exp_dict[tf].keys(): # target
-        time, sign = get_sig_info(tf, gene, amp_thresh)
+        time, sign = get_sig_info(tf, gene)
         if time is not None and time > 0 and time < t_thresh:
             if gene not in gene_nodes:
                 gene_nodes[gene] = structs.GeneNode(gene)
@@ -462,14 +462,9 @@ def build_network(df):
     extract_expression_data(df)
     tfs = df['TF'].unique()
     edges_df = pd.DataFrame(columns=['reg', 'target', 'type'])
-    thresh_df = pd.DataFrame(columns=['reg', 't_thresh', 'amp_thresh'])
     for tf in tfs:
-        t_thresh = 17
-        amp_thresh = 0.2
-        build_tree(tf, t_thresh, amp_thresh, edges_df) # dummy thresholds
-        thresh_df.loc[len(thresh_df.index)] = [tf, t_thresh, amp_thresh]
+        build_tree(tf, edges_df) # dummy thresholds
     edges_df.to_csv(f"grn_edges/grn_edges_{timestamp}.csv", index=False)
-    thresh_df.to_csv(f"grn_params/params_{timestamp}.csv", index=False)
 
     visualize_gene_network()
 
@@ -587,7 +582,7 @@ def main():
 
     df = filter_df(path, gene_path)
 
-    thresh_df = pd.DataFrame(gene_path)
+    thresh_df = pd.read_csv(gene_path)
     thresh_df = thresh_df.columns.difference(['type'])
 
     # # create heat maps
