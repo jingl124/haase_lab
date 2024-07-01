@@ -187,7 +187,7 @@ def classify_time_series():
     # plt.show()
 
     # Apply KMeans clustering
-    kmeans = KMeans(n_clusters=7, random_state=2)
+    kmeans = KMeans(n_clusters=5, random_state=2)
     clusters = kmeans.fit_predict(features_scaled)
     feature_df['cluster'] = clusters
 
@@ -267,13 +267,13 @@ def sigmoid_curve_fit(tf, gene):
         bounds = ([-np.inf, 0, 0, -np.inf], [np.inf, np.inf, np.inf, np.inf]) # bounds and method specified
         params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
         return params
-    # except Exception:
-    #     pass
-    # try:
-    #     bounds = ([-np.inf, 0, 0, -np.inf, -np.inf, 0, 0, -np.inf], 
-    #               [np.inf, np.inf, np.inf, np.inf, -np.inf, 0, 0, -np.inf])
-    #     params, _ = curve_fit(double_sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
-    #     return params
+    except Exception:
+        pass
+    try:
+        bounds = ([-np.inf, 0, 0, -np.inf, -np.inf, 0, 0, -np.inf], 
+                  [np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
+        params, _ = scipy.optimize.curve_fit(double_sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
+        return params
     except Exception as e:
         print(f"{e} - TF: {tf}, target: {gene}")
         return None
@@ -614,7 +614,7 @@ def main():
     # extract_expression_data(df)
     # feature_df = classify_time_series()
     # print(feature_df)
-    # for cluster in range(7):
+    # for cluster in range(5):
     #     cluster_df = feature_df[feature_df['cluster'] == cluster]
     #     plt.figure(figsize=(10, 6))
     #     for _, row in cluster_df.head().iterrows():  # Plot first 5 series for brevity
