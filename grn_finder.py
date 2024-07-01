@@ -239,11 +239,16 @@ def sigmoid_curve_fit(tf, gene):
     for time in time_series:
         xdata.append(time[0])
         ydata.append(time[1])
-    p0 = [max(ydata), np.median(xdata), 1, min(ydata)]    
+    p0 = [max(ydata), np.median(xdata), 1, min(ydata)] 
+
+    # prematurely remove time series data that doesn't have a big enough amplitude
+    amp_thresh = thresh_df.loc[thresh_df['gene'] == tf, 'amp_thresh'].values[0]
+    if max(ydata) - min(ydata) < amp_thresh:
+        return None 
     
+    # curve fit
     try:
-        # Curve fitting with bounds and method specified
-        bounds = ([-np.inf, 0, 0, -np.inf], [np.inf, np.inf, np.inf, np.inf])
+        bounds = ([-np.inf, 0, 0, -np.inf], [np.inf, np.inf, np.inf, np.inf]) # bounds and method specified
         params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
         return params
     # except Exception:
