@@ -139,14 +139,14 @@ def extract_features(series):
         'mean_slope': np.mean(slope),
         'mean_curvature': np.mean(curvature),
         'dominant_freq': dominant_freq,
-        # 'peak_to_peak_amplitude': np.max(series) - np.min(series),
-        # 'variance': np.var(series),
+        'peak_to_peak_amplitude': np.max(series) - np.min(series),
+        'variance': np.var(series),
         'skewness': scipy.stats.skew(series),
         'kurtosis': scipy.stats.kurtosis(series),
-        # 'mean_value': np.mean(series),
-        # 'std_deviation': np.std(series),
-        # 'max_value': np.max(series),
-        # 'min_value': np.min(series)
+        'mean_value': np.mean(series),
+        'std_deviation': np.std(series),
+        'max_value': np.max(series),
+        'min_value': np.min(series)
     }
     return features
 
@@ -170,8 +170,24 @@ def classify_time_series():
     print(scaled_df)
     features_scaled = scaler.fit_transform(scaled_df)
 
+    # # Elbow method to determine the optimal number of clusters
+    # wcss = []
+    # max_clusters = 10
+    # for k in range(1, max_clusters + 1):
+    #     kmeans = KMeans(n_clusters=k, random_state=42)
+    #     kmeans.fit(features_scaled)
+    #     wcss.append(kmeans.inertia_)
+
+    # # Plotting the elbow curve
+    # plt.figure(figsize=(8, 5))
+    # plt.plot(range(1, max_clusters + 1), wcss, marker='o')
+    # plt.title('Elbow Method for Optimal k')
+    # plt.xlabel('Number of Clusters (k)')
+    # plt.ylabel('Within-Cluster Sum of Squares (WCSS)')
+    # plt.show()
+
     # Apply KMeans clustering
-    kmeans = KMeans(n_clusters=3, random_state=42)
+    kmeans = KMeans(n_clusters=6, random_state=2)
     clusters = kmeans.fit_predict(features_scaled)
     feature_df['cluster'] = clusters
 
@@ -593,23 +609,23 @@ def main():
     # # create heat maps
     # create_heat_maps(df)
 
-    # reformat data and build network
-    build_network(df)
-    # extract_expression_data(df)
-    # feature_df = classify_time_series()
-    # print(feature_df)
-    # for cluster in range(3):
-    #     cluster_df = feature_df[feature_df['cluster'] == cluster]
-    #     plt.figure(figsize=(10, 6))
-    #     for _, row in cluster_df.iterrows():  # Plot first 5 series for brevity
-    #         tf = row['TF']
-    #         target = row['target']
-    #         time_series = exp_dict[tf][target]
-    #         timestamps, values = zip(*time_series)
-    #         plt.plot(timestamps, values, marker='o', linestyle='-')
-    #     plt.title(f'Cluster {cluster}')
-    #     plt.legend()
-    #     plt.show()
+    # # reformat data and build network
+    # build_network(df)
+    extract_expression_data(df)
+    feature_df = classify_time_series()
+    print(feature_df)
+    for cluster in range(6):
+        cluster_df = feature_df[feature_df['cluster'] == cluster]
+        plt.figure(figsize=(10, 6))
+        for _, row in cluster_df.head().iterrows():  # Plot first 5 series for brevity
+            tf = row['TF']
+            target = row['target']
+            time_series = exp_dict[tf][target]
+            timestamps, values = zip(*time_series)
+            plt.plot(timestamps, scale_data(values), marker='o', linestyle='-')
+        plt.title(f'Cluster {cluster}')
+        plt.legend()
+        plt.show()
 
 if __name__ == '__main__':
     main()   
