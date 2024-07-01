@@ -21,6 +21,9 @@ gene_nodes = {}
 # global dictionary of expression data
 exp_dict = {}
 
+# global pandas DataFrame for time and amplitude thresholds
+thresh_df = pd.DataFrame(columns=['gene', 't_thresh', 'amp_thresh'])
+
 # global timestamp
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -58,6 +61,8 @@ def extract_expression_data(df):
 def sort_genes(path, sep):
     '''
     Returns the list of TFs and targets to be included in GRN based on information found in an input file. 
+    Also populates thresh_df, a global dictionary containing all time and amplitude thresholds for each gene.
+
     Parameters:
     path (string): path of the input file
     sep (string): separator to parse input file
@@ -71,6 +76,9 @@ def sort_genes(path, sep):
     targets = []
     for _, row in df.iterrows():
         gene = row['gene']
+        t_thresh = row['t_thresh']
+        amp_thresh = row['amp_thresh']
+        thresh_df.loc[len(thresh_df.index)] = [gene, t_thresh, amp_thresh]
         gene_type = row['type']
         if 'target' in gene_type:
             targets.append(gene)
