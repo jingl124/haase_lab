@@ -388,7 +388,7 @@ def build_tree(tf, edges_df):
                 gene_nodes[gene] = structs.GeneNode(gene)
             target = gene_nodes[gene]
             node.add_edge(target, sign, time) 
-            edges_df.loc[len(edges_df.index)] = [tf, gene, 'act' if sign else 'rep']
+            edges_df.loc[len(edges_df.index)] = [tf, gene, 'act' if sign else 'rep', time]
         
 def visualize_gene_network():
     '''
@@ -484,7 +484,7 @@ def build_network(df):
     tfs = df['TF'].unique()
     edges_df = pd.DataFrame(columns=['reg', 'target', 'type', 'time'])
     for tf in tfs:
-        build_tree(tf, edges_df) # dummy thresholds
+        build_tree(tf, edges_df) 
     edges_df.to_csv(f"grn_edges/grn_edges_{timestamp}.csv", index=False)
 
     visualize_gene_network()
@@ -506,19 +506,10 @@ def compare_edges(ref, grn):
     '''
     # read csv files into DataFrames
     ref_df = pd.read_csv(ref)
+
     grn_df = pd.read_csv(grn)
+    grn_df = grn_df.loc[:, grn_df.columns.difference(['time'])]
 
-    # # get common edges
-    # common_rows = pd.merge(ref_df, grn_df, how='inner')
-    # both = df_to_edges(common_rows)
-
-    # # get edges that are diff
-    # ref_rows = pd.merge(ref_df, grn_df, how='left').drop_duplicates(keep=False)
-    # refs = df_to_edges(ref_rows)
-
-    # grn_rows = pd.merge(ref_df, grn_df, how='right').drop_duplicates(keep=False)
-    # grns = df_to_edges(grn_rows)
-    # Convert DataFrame rows to sets of tuples
     ref_edges = set(tuple(row) for row in ref_df.to_records(index=False))
     grn_edges = set(tuple(row) for row in grn_df.to_records(index=False))
 
