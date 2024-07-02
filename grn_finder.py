@@ -366,7 +366,7 @@ def create_heat_maps(df):
     plt.savefig("heat_maps.png")
     plt.show()
 
-# network construction
+# grn network construction
 def build_ref_network():
     '''
     Build cell cycle reference network on top of generated GRN. 
@@ -513,6 +513,42 @@ def build_network(df):
     edges_df.to_csv(f"grn_edges/grn_edges_{timestamp}.csv", index=False)
 
     visualize_gene_network()
+
+# find paths
+def find_paths(tf, target, path_limit=3):
+    '''
+    Find all paths from one node to another.
+
+    Parameters:
+    tf (string): name of starting node
+    target (string): name of ending node
+    path_limit (int): maximum length of paths found
+
+    Returns: 
+    paths (list of lists of Edges): each path is represented by a list of Edges. 
+        All finished paths must have the target node as the target of the last Edge.
+    '''
+
+def find_paths_recursive(path, target, path_limit):
+    '''
+    Recursive helper function for find_paths. Tracks path recursively.
+
+    Parameters:
+    path (list of Edges): current 
+    '''
+    if len(path) > path_limit:
+        return
+    last_edge = path[len(path)-1]
+    if len(path) == path_limit:
+        if last_edge.target != target:
+            return
+    
+    current_node = last_edge.target
+    edges = current_node
+
+def find_all_paths():
+    '''
+    '''
 
 # compare with reference graph
 def compare_edges(ref, grn):
