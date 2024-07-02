@@ -10,8 +10,8 @@ import graphviz
 import matplotlib
 import math
 import datetime
-# from sklearn.preprocessing import StandardScaler
-# from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
 
 importlib.reload(structs)
 
@@ -121,6 +121,7 @@ def read_peak_times():
     peak_times = df[df['Genes'].isin(gene_nodes)]
     return peak_times
 
+# clustering
 def extract_features(series):
     peaks, _ = scipy.signal.find_peaks(series)
     valleys, _ = scipy.signal.find_peaks(series * -1)
@@ -171,13 +172,13 @@ def classify_time_series():
     print(scaled_df)
     features_scaled = scaler.fit_transform(scaled_df)
 
-    # Elbow method to determine the optimal number of clusters
-    wcss = []
-    max_clusters = 10
-    for k in range(1, max_clusters + 1):
-        kmeans = KMeans(n_clusters=k, random_state=42)
-        kmeans.fit(features_scaled)
-        wcss.append(kmeans.inertia_)
+    # # Elbow method to determine the optimal number of clusters
+    # wcss = []
+    # max_clusters = 10
+    # for k in range(1, max_clusters + 1):
+    #     kmeans = KMeans(n_clusters=k, random_state=42)
+    #     kmeans.fit(features_scaled)
+    #     wcss.append(kmeans.inertia_)
 
     # Plotting the elbow curve
     plt.figure(figsize=(8, 5))
@@ -193,6 +194,28 @@ def classify_time_series():
     feature_df['cluster'] = clusters
 
     return feature_df
+
+def plot_clusters():
+    feature_df = classify_time_series()
+    print(feature_df)
+    feature_df.to_csv("clusters.csv")
+    for cluster in range(7):
+        cluster_df = feature_df[feature_df['cluster'] == cluster]
+        plt.figure(figsize=(10, 6))
+        for _, row in cluster_df.head().iterrows():  # Plot first 5 series for brevity
+            tf = row['TF']
+            target = row['target']
+            time_series = exp_dict[tf][target]
+            timestamps, values = zip(*time_series)
+            # plt.plot(timestamps, values, marker='o', linestyle='-')
+            plt.plot(timestamps, scale_data(values), marker='o', linestyle='-', label=f'{tf}-{target}')
+        plt.title(f'Cluster {cluster}')
+        plt.legend()
+        # plt.show()
+        output_dir = f'cluster_plots/cluster_plots_{timestamp}'
+        os.makedirs(output_dir, exist_ok=True)
+        plt.savefig(os.path.join(output_dir, f'cluster_{cluster}.png'))
+        plt.close() 
 
 # using sigmoidal fit to retrieve gene expression info
 def get_sig_info(tf, gene):
@@ -481,7 +504,6 @@ def build_network(df):
     df (pandas DataFrame): contains gene expression data of desired TFs and targets
     '''
     # build network
-    extract_expression_data(df)
     tfs = df['TF'].unique()
     edges_df = pd.DataFrame(columns=['reg', 'target', 'type', 'time'])
     for tf in tfs:
@@ -594,6 +616,8 @@ def main():
 
     df = filter_df(path, gene_path)
 
+    extract_expression_data(df)
+
     thresh_df = pd.read_csv(gene_path)
     thresh_df = thresh_df.columns.difference(['type'])
 
@@ -602,27 +626,9 @@ def main():
 
     # # reformat data and build network
     # build_network(df)
-    extract_expression_data(df)
-    feature_df = classify_time_series()
-    print(feature_df)
-    feature_df.to_csv("clusters.csv")
-    # for cluster in range(7):
-    #     cluster_df = feature_df[feature_df['cluster'] == cluster]
-    #     plt.figure(figsize=(10, 6))
-    #     for _, row in cluster_df.head().iterrows():  # Plot first 5 series for brevity
-    #         tf = row['TF']
-    #         target = row['target']
-    #         time_series = exp_dict[tf][target]
-    #         timestamps, values = zip(*time_series)
-    #         # plt.plot(timestamps, values, marker='o', linestyle='-')
-    #         plt.plot(timestamps, scale_data(values), marker='o', linestyle='-', label=f'{tf}-{target}')
-    #     plt.title(f'Cluster {cluster}')
-    #     plt.legend()
-    #     # plt.show()
-    #     output_dir = f'cluster_plots/cluster_plots_{timestamp}'
-    #     os.makedirs(output_dir, exist_ok=True)
-    #     plt.savefig(os.path.join(output_dir, f'cluster_{cluster}.png'))
-    #     plt.close() 
+    
+    # get clusters and plot line graph samples
+    plot_clusters()
         
 
 if __name__ == '__main__':
