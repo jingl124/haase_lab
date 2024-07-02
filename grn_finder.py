@@ -537,7 +537,7 @@ def compare_edges(ref, grn):
     grns = list(grns)
 
     # DataFrame of all edges to be converted to .csv file
-    edges_df = pd.DataFrame(columns=['reg', 'target', 'act', 'group'])
+    all_edges = pd.DataFrame(columns=['reg', 'target', 'act', 'group'])
 
     # convert to Edges and add to edges_df
     for i in range(len(both)):
@@ -546,7 +546,7 @@ def compare_edges(ref, grn):
         target = temp[1]
         act = temp[2] == 'act'
         both[i] = gene_nodes[reg].get_edge(gene_nodes[target], act)
-        edges_df.loc[len(edges_df.index)] = [reg, target, act, 'both']
+        all_edges.loc[len(all_edges.index)] = [reg, target, act, 'both']
 
     for i in range(len(refs)):
         temp = refs[i]
@@ -554,7 +554,7 @@ def compare_edges(ref, grn):
         target = temp[1]
         act = temp[2] == 'act'
         refs[i] = gene_nodes[reg].get_edge(gene_nodes[target], act)
-        edges_df.loc[len(edges_df.index)] = [reg, target, act, 'refs']
+        all_edges.loc[len(all_edges.index)] = [reg, target, act, 'refs']
     
     for i in range(len(grns)):
         temp = grns[i]
@@ -562,10 +562,10 @@ def compare_edges(ref, grn):
         target = temp[1]
         act = temp[2] == 'act'
         grns[i] = gene_nodes[reg].get_edge(gene_nodes[target], act)
-        edges_df.loc[len(edges_df.index)] = [reg, target, act, 'grns']
+        all_edges.loc[len(all_edges.index)] = [reg, target, act, 'grns']
 
     # render .csv file
-    edges_df.to_csv(f"edges_info/edges_info_{timestamp}.csv")
+    all_edges.to_csv(f"edges_info/edges_info_{timestamp}.csv")
 
     # return lists of Edges
     return both, refs, grns
