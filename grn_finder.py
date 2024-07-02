@@ -387,7 +387,7 @@ def build_tree(tf, edges_df):
             if gene not in gene_nodes:
                 gene_nodes[gene] = structs.GeneNode(gene)
             target = gene_nodes[gene]
-            node.add_edge(target, sign) 
+            node.add_edge(target, sign, time) 
             edges_df.loc[len(edges_df.index)] = [tf, gene, 'act' if sign else 'rep']
         
 def visualize_gene_network():
@@ -482,7 +482,7 @@ def build_network(df):
     # build network
     extract_expression_data(df)
     tfs = df['TF'].unique()
-    edges_df = pd.DataFrame(columns=['reg', 'target', 'type'])
+    edges_df = pd.DataFrame(columns=['reg', 'target', 'type', 'time'])
     for tf in tfs:
         build_tree(tf, edges_df) # dummy thresholds
     edges_df.to_csv(f"grn_edges/grn_edges_{timestamp}.csv", index=False)
