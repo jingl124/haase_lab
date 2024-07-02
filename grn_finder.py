@@ -10,8 +10,8 @@ import graphviz
 import matplotlib
 import math
 import datetime
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
+# from sklearn.preprocessing import StandardScaler
+# from sklearn.cluster import KMeans
 
 importlib.reload(structs)
 
@@ -158,8 +158,9 @@ def classify_time_series():
             times, values = zip(*time_series_data)
             values = scale_data(values)
             series = pd.Series(data=values, index=times)
-            row = extract_features(series)
-            row.update({'TF': tf, 'target': target})
+            row = {'TF': tf, 'target': target}
+            features = extract_features(series)
+            row.update(features)
             feature_list.append(row)
     feature_df = pd.DataFrame(feature_list)
 
@@ -604,23 +605,24 @@ def main():
     extract_expression_data(df)
     feature_df = classify_time_series()
     print(feature_df)
-    for cluster in range(7):
-        cluster_df = feature_df[feature_df['cluster'] == cluster]
-        plt.figure(figsize=(10, 6))
-        for _, row in cluster_df.head().iterrows():  # Plot first 5 series for brevity
-            tf = row['TF']
-            target = row['target']
-            time_series = exp_dict[tf][target]
-            timestamps, values = zip(*time_series)
-            # plt.plot(timestamps, values, marker='o', linestyle='-')
-            plt.plot(timestamps, scale_data(values), marker='o', linestyle='-')
-        plt.title(f'Cluster {cluster}')
-        plt.legend()
-        # plt.show()
-        output_dir = f'cluster_plots/cluster_plots_{timestamp}'
-        os.makedirs(output_dir, exist_ok=True)
-        plt.savefig(os.path.join(output_dir, f'cluster_{cluster}.png'))
-        plt.close() 
+    feature_df.to_csv("clusters.csv")
+    # for cluster in range(7):
+    #     cluster_df = feature_df[feature_df['cluster'] == cluster]
+    #     plt.figure(figsize=(10, 6))
+    #     for _, row in cluster_df.head().iterrows():  # Plot first 5 series for brevity
+    #         tf = row['TF']
+    #         target = row['target']
+    #         time_series = exp_dict[tf][target]
+    #         timestamps, values = zip(*time_series)
+    #         # plt.plot(timestamps, values, marker='o', linestyle='-')
+    #         plt.plot(timestamps, scale_data(values), marker='o', linestyle='-', label=f'{tf}-{target}')
+    #     plt.title(f'Cluster {cluster}')
+    #     plt.legend()
+    #     # plt.show()
+    #     output_dir = f'cluster_plots/cluster_plots_{timestamp}'
+    #     os.makedirs(output_dir, exist_ok=True)
+    #     plt.savefig(os.path.join(output_dir, f'cluster_{cluster}.png'))
+    #     plt.close() 
         
 
 if __name__ == '__main__':
