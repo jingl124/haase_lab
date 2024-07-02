@@ -170,24 +170,24 @@ def classify_time_series():
     print(scaled_df)
     features_scaled = scaler.fit_transform(scaled_df)
 
-    # # Elbow method to determine the optimal number of clusters
-    # wcss = []
-    # max_clusters = 10
-    # for k in range(1, max_clusters + 1):
-    #     kmeans = KMeans(n_clusters=k, random_state=42)
-    #     kmeans.fit(features_scaled)
-    #     wcss.append(kmeans.inertia_)
+    # Elbow method to determine the optimal number of clusters
+    wcss = []
+    max_clusters = 10
+    for k in range(1, max_clusters + 1):
+        kmeans = KMeans(n_clusters=k, random_state=42)
+        kmeans.fit(features_scaled)
+        wcss.append(kmeans.inertia_)
 
-    # # Plotting the elbow curve
-    # plt.figure(figsize=(8, 5))
-    # plt.plot(range(1, max_clusters + 1), wcss, marker='o')
-    # plt.title('Elbow Method for Optimal k')
-    # plt.xlabel('Number of Clusters (k)')
-    # plt.ylabel('Within-Cluster Sum of Squares (WCSS)')
-    # plt.show()
+    # Plotting the elbow curve
+    plt.figure(figsize=(8, 5))
+    plt.plot(range(1, max_clusters + 1), wcss, marker='o')
+    plt.title('Elbow Method for Optimal k')
+    plt.xlabel('Number of Clusters (k)')
+    plt.ylabel('Within-Cluster Sum of Squares (WCSS)')
+    plt.show()
 
     # Apply KMeans clustering
-    kmeans = KMeans(n_clusters=5, random_state=2)
+    kmeans = KMeans(n_clusters=7, random_state=2)
     clusters = kmeans.fit_predict(features_scaled)
     feature_df['cluster'] = clusters
 
@@ -508,7 +508,7 @@ def compare_edges(ref, grn):
     ref_df = pd.read_csv(ref)
     grn_df = pd.read_csv(grn)
     grn_df = grn_df.loc[:, grn_df.columns.difference(['time'])]
-    
+
     ref_edges = set(tuple(row) for row in ref_df.to_records(index=False))
     grn_edges = set(tuple(row) for row in grn_df.to_records(index=False))
 
@@ -599,24 +599,29 @@ def main():
     # # create heat maps
     # create_heat_maps(df)
 
-    # reformat data and build network
-    build_network(df)
-    # extract_expression_data(df)
-    # feature_df = classify_time_series()
-    # print(feature_df)
-    # for cluster in range(5):
-    #     cluster_df = feature_df[feature_df['cluster'] == cluster]
-    #     plt.figure(figsize=(10, 6))
-    #     for _, row in cluster_df.head().iterrows():  # Plot first 5 series for brevity
-    #         tf = row['TF']
-    #         target = row['target']
-    #         time_series = exp_dict[tf][target]
-    #         timestamps, values = zip(*time_series)
-    #         plt.plot(timestamps, values, marker='o', linestyle='-')
-    #         plt.plot(timestamps, scale_data(values), marker='o', linestyle='-')
-    #     plt.title(f'Cluster {cluster}')
-    #     plt.legend()
-    #     plt.show()
+    # # reformat data and build network
+    # build_network(df)
+    extract_expression_data(df)
+    feature_df = classify_time_series()
+    print(feature_df)
+    for cluster in range(7):
+        cluster_df = feature_df[feature_df['cluster'] == cluster]
+        plt.figure(figsize=(10, 6))
+        for _, row in cluster_df.head().iterrows():  # Plot first 5 series for brevity
+            tf = row['TF']
+            target = row['target']
+            time_series = exp_dict[tf][target]
+            timestamps, values = zip(*time_series)
+            # plt.plot(timestamps, values, marker='o', linestyle='-')
+            plt.plot(timestamps, scale_data(values), marker='o', linestyle='-')
+        plt.title(f'Cluster {cluster}')
+        plt.legend()
+        # plt.show()
+        output_dir = f'cluster_plots/cluster_plots_{timestamp}'
+        os.makedirs(output_dir, exist_ok=True)
+        plt.savefig(os.path.join(output_dir, f'cluster_{cluster}.png'))
+        plt.close() 
+        
 
 if __name__ == '__main__':
     main()   
