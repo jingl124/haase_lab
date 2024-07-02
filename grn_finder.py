@@ -180,13 +180,13 @@ def classify_time_series():
     #     kmeans.fit(features_scaled)
     #     wcss.append(kmeans.inertia_)
 
-    # Plotting the elbow curve
-    plt.figure(figsize=(8, 5))
-    plt.plot(range(1, max_clusters + 1), wcss, marker='o')
-    plt.title('Elbow Method for Optimal k')
-    plt.xlabel('Number of Clusters (k)')
-    plt.ylabel('Within-Cluster Sum of Squares (WCSS)')
-    plt.show()
+    # # Plotting the elbow curve
+    # plt.figure(figsize=(8, 5))
+    # plt.plot(range(1, max_clusters + 1), wcss, marker='o')
+    # plt.title('Elbow Method for Optimal k')
+    # plt.xlabel('Number of Clusters (k)')
+    # plt.ylabel('Within-Cluster Sum of Squares (WCSS)')
+    # plt.show()
 
     # Apply KMeans clustering
     kmeans = KMeans(n_clusters=7, random_state=2)
@@ -195,7 +195,7 @@ def classify_time_series():
 
     return feature_df
 
-def plot_clusters():
+def plot_clusters(scaled=False):
     feature_df = classify_time_series()
     print(feature_df)
     feature_df.to_csv("clusters.csv")
@@ -207,8 +207,10 @@ def plot_clusters():
             target = row['target']
             time_series = exp_dict[tf][target]
             timestamps, values = zip(*time_series)
-            # plt.plot(timestamps, values, marker='o', linestyle='-')
-            plt.plot(timestamps, scale_data(values), marker='o', linestyle='-', label=f'{tf}-{target}')
+            if not scaled:
+                plt.plot(timestamps, values, marker='o', linestyle='-', label=f'{tf}-{target}')
+            else: 
+                plt.plot(timestamps, scale_data(values), marker='o', linestyle='-', label=f'{tf}-{target}')
         plt.title(f'Cluster {cluster}')
         plt.legend()
         # plt.show()
@@ -628,7 +630,7 @@ def main():
     # build_network(df)
     
     # get clusters and plot line graph samples
-    plot_clusters()
+    plot_clusters(scaled=True)
         
 
 if __name__ == '__main__':
