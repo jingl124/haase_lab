@@ -529,22 +529,43 @@ def find_paths(tf, target, path_limit=3):
         All finished paths must have the target node as the target of the last Edge.
     '''
 
-def find_paths_recursive(path, target, path_limit):
+def find_paths_recursive(paths, target, path_length, path_limit):
     '''
     Recursive helper function for find_paths. Tracks path recursively.
 
     Parameters:
-    path (list of Edges): current 
+    paths (list of lists of Edges): current paths that are being tracked. 
+        Contains paths in progress and finished paths.
+    target (string): string of the target node
+    path_length (int): current length of each path in progress in paths (they should all be the same length)
+    path_limit (int): maximum length of a path
     '''
-    if len(path) > path_limit:
+    # edge case (no pun intended). theoretically this shouldn't happen
+    if path_length > path_limit:
         return
-    last_edge = path[len(path)-1]
-    if len(path) == path_limit:
-        if last_edge.target != target:
-            return
     
-    current_node = last_edge.target
-    edges = current_node
+    # finish up the recursion
+    if path_length == path_limit:
+        final_paths = []
+        for path in paths:
+            last_edge = path[len(path)-1]
+            last_node = last_edge.target
+            if last_node == target:
+                final_paths.append(path)
+        return final_paths
+    
+    # recursion
+    new_paths = []
+    for path in paths:
+        last_edge = path[len(path)-1]
+        last_node = last_edge.target
+        if last_node == target:
+            new_paths.append(path)
+        else:
+            for edge in last_node.edges:
+                new_path = path.append(edge)
+                new_paths.append(new_path)
+    return find_paths_recursive(new_paths, target, path_length + 1, path_limit)
 
 def find_all_paths():
     '''
