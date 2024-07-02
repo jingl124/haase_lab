@@ -506,10 +506,9 @@ def compare_edges(ref, grn):
     '''
     # read csv files into DataFrames
     ref_df = pd.read_csv(ref)
-
     grn_df = pd.read_csv(grn)
     grn_df = grn_df.loc[:, grn_df.columns.difference(['time'])]
-
+    
     ref_edges = set(tuple(row) for row in ref_df.to_records(index=False))
     grn_edges = set(tuple(row) for row in grn_df.to_records(index=False))
 
