@@ -587,6 +587,7 @@ def find_all_paths(graph, path_limit=3):
         'ref' if reference graph, 'grn' if generated GRN.
     path_limit (int): the maximum length of every path
     '''
+    # getting proper edges
     both, refs, grns = compare_edges('ref_edges.csv', f'grn_edges/grn_edges_{timestamp}.csv')
     edges = []
     if graph == 'ref':
@@ -595,6 +596,8 @@ def find_all_paths(graph, path_limit=3):
         edges = both.extend(grns)
     else:
         raise ValueError("Improper input for graph attribute.")
+    
+    # getting paths
     path_df = pd.DataFrame(columns=['start', 'end', 'path', 'graph'])
     genes = gene_nodes.keys()
     for gene1 in genes:
@@ -603,7 +606,7 @@ def find_all_paths(graph, path_limit=3):
             for p in paths:
                 path = path_to_strings(gene1, p)
                 path_df.loc[len(path_df.index)] = [gene1, gene2, path, graph]
-
+    path_df.to_csv("paths.csv")
 
 def path_to_strings(tf, path):
     '''
@@ -616,7 +619,12 @@ def path_to_strings(tf, path):
     Returns:
     strings (list of strings): list of names of nodes in path
     '''
-    # strings = 
+    strings = [tf]
+    for edge in path:
+        target = edge.target
+        node = target.gene
+        strings.append(node)
+    return strings
 
 # compare with reference graph
 def compare_edges(ref, grn):
