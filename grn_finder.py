@@ -291,14 +291,14 @@ def sigmoid_curve_fit(tf, gene):
     # curve fit
     try:
         bounds = ([-np.inf, 0, 0, -np.inf], [np.inf, np.inf, np.inf, np.inf]) # bounds and method specified
-        params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
+        params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=10000)
         return params
     except Exception:
         pass
     try:
         bounds = ([-np.inf, 0, 0, -np.inf, -np.inf, 0, 0, -np.inf], 
                   [np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
-        params, _ = scipy.optimize.curve_fit(double_sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
+        params, _ = scipy.optimize.curve_fit(double_sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=10000)
         return params
     except Exception as e:
         print(f"{e} - TF: {tf}, target: {gene}")
@@ -515,14 +515,14 @@ def build_network(df):
     visualize_gene_network()
 
 # find paths
-def find_paths(tf, target, edges, path_limit=3):
+def find_paths(tf, target, graph, path_limit=3):
     '''
     Find all paths from one node to another.
 
     Parameters:
     tf (string): name of starting node
     target (string): name of ending node
-    edges (list of Edges): all valid Edges
+    graph (string): the graph to get edges from
     path_limit (int): maximum length of paths found
 
     Returns: 
@@ -532,13 +532,15 @@ def find_paths(tf, target, edges, path_limit=3):
     tf_node = gene_nodes[tf]
     paths = []
     for edge in tf_node.edges:
-        new_paths = find_paths_recursive([[edge]], target, edges, 1, path_limit)
-        paths.extend(new_paths)
+        edges = get_edges_info(tf_node.gene, graph)
+        if [tf_node.gene, edge.target.gene] in edges:
+            new_paths = find_paths_recursive([[edge]], target, graph, 1, path_limit)
+            paths.extend(new_paths)
     if len(paths) == 0:
         return None
     return paths
 
-def find_paths_recursive(paths, target, edges, path_length, path_limit):
+def find_paths_recursive(paths, target, graph, path_length, path_limit):
     '''
     Recursive helper function for find_paths. Tracks path recursively.
 
@@ -546,7 +548,7 @@ def find_paths_recursive(paths, target, edges, path_length, path_limit):
     paths (list of lists of Edges): current paths that are being tracked. 
         Contains paths in progress and finished paths.
     target (string): string of the target node
-    edges (list of Edges): valid Edges to be used
+    graph (string): graph to get edges from. 'ref' if reference, 'grn' if from generated GRN.
     path_length (int): current length of each path in progress in paths (they should all be the same length)
     path_limit (int): maximum length of a path
     '''
@@ -559,7 +561,7 @@ def find_paths_recursive(paths, target, edges, path_length, path_limit):
         final_paths = []
         for path in paths:
             last_edge = path[len(path)-1]
-            last_node = last_edge.target
+            last_node = last_edge.target.gene
             if last_node == target:
                 final_paths.append(path)
         return final_paths
@@ -568,17 +570,41 @@ def find_paths_recursive(paths, target, edges, path_length, path_limit):
     new_paths = []
     for path in paths:
         last_edge = path[len(path)-1]
-        last_node = last_edge.target
+        last_node = last_edge.target # GeneNode
         if last_node == target:
             new_paths.append(path)
         elif len(last_node.edges) == 0:
             continue
         else:
+            reg = last_node.gene
+            edges = get_edges_info(reg, graph)
             for edge in last_node.edges:
-                if edge in edges:
-                    new_path = path.append(edge)
+                tar = edge.target.gene # string
+                row = [reg, tar]
+                if row in edges:
+                    new_path = path + [edge]
                     new_paths.append(new_path)
-    return find_paths_recursive(new_paths, target, path_length + 1, path_limit)
+    return find_paths_recursive(new_paths, target, graph, path_length + 1, path_limit)
+
+def get_edges_info(reg, graph):
+    '''
+    Given a regulator and the specified graph, find all edges from that regulator in the graph.
+
+    Parameters:
+    reg (string): name of the regulator
+    graph (string): 'ref' if reference graph, 'grn' if GRN graph
+
+    Returns:
+    rows (list of lists of strings): the rows from edges_info_{timestamp}.csv that satisfy the attributes
+    '''
+    df = pd.read_csv(f"edges_info/edges_info_{timestamp}.csv")
+    df = df[(df['reg'] == reg) & ((df['group'] == 'both') | (df['group'] == f'{graph}s'))]
+    rows = []
+    for _, row in df.iterrows():
+        new_row = [row['reg'], row['target']]
+        rows.append(new_row)
+    return rows
+
 
 def paths_to_df(graph, path_limit=3):
     '''
@@ -593,13 +619,7 @@ def paths_to_df(graph, path_limit=3):
     path_df (pandas DataFrame): DataFrame to be 
     '''
     # getting proper edges
-    both, refs, grns = compare_edges('ref_edges.csv', f'grn_edges/grn_edges_{timestamp}.csv')
-    edges = []
-    if graph == 'ref':
-        edges = both + refs
-    elif graph == 'grn':
-        edges = both + grns
-    else:
+    if graph != 'ref' and graph != 'grn':
         raise ValueError("Improper input for graph attribute.")
     
     # getting paths
@@ -607,7 +627,9 @@ def paths_to_df(graph, path_limit=3):
     genes = gene_nodes.keys()
     for gene1 in genes:
         for gene2 in genes:
-            paths = find_paths(gene1, gene2, edges, path_limit)
+            paths = find_paths(gene1, gene2, graph, path_limit)
+            if paths is None:
+                break
             for p in paths:
                 path = path_to_strings(gene1, p)
                 path_df.loc[len(path_df.index)] = [gene1, gene2, path, graph]
