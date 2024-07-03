@@ -571,6 +571,8 @@ def find_paths_recursive(paths, target, edges, path_length, path_limit):
         last_node = last_edge.target
         if last_node == target:
             new_paths.append(path)
+        elif len(last_node.edges) == 0:
+            continue
         else:
             for edge in last_node.edges:
                 if edge in edges:
@@ -578,22 +580,25 @@ def find_paths_recursive(paths, target, edges, path_length, path_limit):
                     new_paths.append(new_path)
     return find_paths_recursive(new_paths, target, path_length + 1, path_limit)
 
-def find_all_paths(graph, path_limit=3):
+def paths_to_df(graph, path_limit=3):
     '''
-    Outputs all paths into a .csv file.
+    Outputs all paths into a DataFrame to be converted to a .csv file.
 
     Parameters:
     graph (string): specifies which graph to get paths from. 
         'ref' if reference graph, 'grn' if generated GRN.
     path_limit (int): the maximum length of every path
+
+    Returns: 
+    path_df (pandas DataFrame): DataFrame to be 
     '''
     # getting proper edges
     both, refs, grns = compare_edges('ref_edges.csv', f'grn_edges/grn_edges_{timestamp}.csv')
     edges = []
     if graph == 'ref':
-        edges = both.extend(refs)
+        edges = both + refs
     elif graph == 'grn':
-        edges = both.extend(grns)
+        edges = both + grns
     else:
         raise ValueError("Improper input for graph attribute.")
     
@@ -606,7 +611,17 @@ def find_all_paths(graph, path_limit=3):
             for p in paths:
                 path = path_to_strings(gene1, p)
                 path_df.loc[len(path_df.index)] = [gene1, gene2, path, graph]
-    path_df.to_csv("paths.csv")
+    return path_df
+
+def find_all_paths(path_limit=3):
+    '''
+    Convert path DataFrames into a output .csv file.
+    '''
+    df1 = paths_to_df('ref', path_limit=path_limit)
+    df2 = paths_to_df('grn', path_limit=path_limit)
+    df = pd.concat([df1, df2], axis=0).reset_index(drop=True)
+    df = df.sort_values(by=['start', 'end']).reset_index(drop=True)
+    df.to_csv("paths.csv")
 
 def path_to_strings(tf, path):
     '''
@@ -738,11 +753,12 @@ def main():
     # # create heat maps
     # create_heat_maps(df)
 
-    # # reformat data and build network
-    # build_network(df)
+    # reformat data and build network
+    build_network(df)
+    find_all_paths()
     
-    # get clusters and plot line graph samples
-    plot_clusters(scaled=True)
+    # # g\et clusters and plot line graph samples
+    # plot_clusters(scaled=True)
         
 
 if __name__ == '__main__':
