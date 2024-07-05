@@ -534,13 +534,13 @@ def find_paths(tf, target, graph, path_limit=3):
     for edge in tf_node.edges:
         edges = get_edges_info(tf_node.gene, graph)
         if [tf_node.gene, edge.target.gene] in edges:
-            new_paths = find_paths_recursive([[edge]], target, graph, 1, path_limit)
+            new_paths = find_paths_recursive([[edge]], tf, target, graph, 1, path_limit)
             paths.extend(new_paths)
     if len(paths) == 0:
         return None
     return paths
 
-def find_paths_recursive(paths, target, graph, path_length, path_limit):
+def find_paths_recursive(paths, tf, target, graph, path_length, path_limit):
     '''
     Recursive helper function for find_paths. Tracks path recursively.
 
@@ -552,7 +552,7 @@ def find_paths_recursive(paths, target, graph, path_length, path_limit):
     path_length (int): current length of each path in progress in paths (they should all be the same length)
     path_limit (int): maximum length of a path
     '''
-    # edge case (no pun intended). theoretically this shouldn't happen
+    # edge case. theoretically this shouldn't happen
     if path_length > path_limit:
         return
     
@@ -571,7 +571,8 @@ def find_paths_recursive(paths, target, graph, path_length, path_limit):
     for path in paths:
         last_edge = path[len(path)-1]
         last_node = last_edge.target # GeneNode
-        if last_node == target:
+        last_node_name = last_node.gene
+        if last_node_name == target:
             new_paths.append(path)
         elif len(last_node.edges) == 0:
             continue
@@ -580,11 +581,14 @@ def find_paths_recursive(paths, target, graph, path_length, path_limit):
             edges = get_edges_info(reg, graph)
             for edge in last_node.edges:
                 tar = edge.target.gene # string
+                node_names = path_to_strings(tf, path)
+                if tar in node_names:
+                    break
                 row = [reg, tar]
                 if row in edges:
                     new_path = path + [edge]
                     new_paths.append(new_path)
-    return find_paths_recursive(new_paths, target, graph, path_length + 1, path_limit)
+    return find_paths_recursive(new_paths, tf, target, graph, path_length + 1, path_limit)
 
 def get_edges_info(reg, graph):
     '''
@@ -624,9 +628,11 @@ def paths_to_df(graph, path_limit=3):
     
     # getting paths
     path_df = pd.DataFrame(columns=['start', 'end', 'path', 'graph'])
-    genes = gene_nodes.keys()
-    for gene1 in genes:
-        for gene2 in genes:
+    genes = list(gene_nodes.keys())
+    for i in range(len(genes)):
+        for j in range(len(genes)):
+            gene1 = genes[i]
+            gene2 = genes[j]
             paths = find_paths(gene1, gene2, graph, path_limit)
             if paths is None:
                 break
@@ -641,6 +647,8 @@ def find_all_paths(path_limit=3):
     '''
     df1 = paths_to_df('ref', path_limit=path_limit)
     df2 = paths_to_df('grn', path_limit=path_limit)
+    print(len(df1.index))
+    print(len(df2.index))
     df = pd.concat([df1, df2], axis=0).reset_index(drop=True)
     df = df.sort_values(by=['start', 'end']).reset_index(drop=True)
     df.to_csv("paths.csv")
@@ -656,7 +664,9 @@ def path_to_strings(tf, path):
     Returns:
     strings (list of strings): list of names of nodes in path
     '''
-    strings = [tf]
+    strings = []
+    if tf is not None:
+        strings = [tf]
     for edge in path:
         target = edge.target
         node = target.gene
