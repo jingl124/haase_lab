@@ -151,7 +151,7 @@ def extract_features(series):
     }
     return features
 
-def classify_time_series():
+def classify_time_series(num_clusters):
     feature_list = []
     for tf in exp_dict:
         for target in exp_dict[tf]:
@@ -189,17 +189,17 @@ def classify_time_series():
     # plt.show()
 
     # Apply KMeans clustering
-    kmeans = KMeans(n_clusters=7, random_state=2)
+    kmeans = KMeans(n_clusters=num_clusters, random_state=2)
     clusters = kmeans.fit_predict(features_scaled)
     feature_df['cluster'] = clusters
 
     return feature_df
 
-def plot_clusters(scaled=False):
-    feature_df = classify_time_series()
+def plot_clusters(num_clusters, scaled=False):
+    feature_df = classify_time_series(num_clusters)
     print(feature_df)
     feature_df.to_csv("clusters.csv")
-    for cluster in range(7):
+    for cluster in range(num_clusters):
         cluster_df = feature_df[feature_df['cluster'] == cluster]
         plt.figure(figsize=(10, 6))
         for _, row in cluster_df.head().iterrows():  # Plot first 5 series for brevity
@@ -785,12 +785,12 @@ def main():
     # # create heat maps
     # create_heat_maps(df)
 
-    # reformat data and build network
-    build_network(df)
-    find_all_paths()
+    # # reformat data and build network
+    # build_network(df)
+    # find_all_paths()
     
-    # # g\et clusters and plot line graph samples
-    # plot_clusters(scaled=True)
+    # get clusters and plot line graph samples
+    plot_clusters(7, scaled=False)
         
 
 if __name__ == '__main__':
