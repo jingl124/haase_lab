@@ -12,128 +12,20 @@
 10,CDH1,ACE2,"['CDH1', 'NDD1', 'CDC20', 'ACE2']",ref
 11,CDH1,ACE2,"['CDH1', 'MCM1', 'ACE2']",ref
 12,CDH1,ACE2,"['CDH1', 'MCM1', 'CDC20', 'ACE2']",ref
-13,CDH1,FKH1,"['CDH1', 'FKH1']",ref
-14,CDH1,FKH2,"['CDH1', 'FKH2']",ref
-15,CDH1,MBP1,"['CDH1', 'YHP1', 'MBP1']",ref
-16,CDH1,NRM1,"['CDH1', 'NRM1']",ref
-17,CDH1,PLM2,"['CDH1', 'YHP1', 'SWI4', 'PLM2']",ref
-18,CDH1,PLM2,"['CDH1', 'YHP1', 'SWI6', 'PLM2']",ref
-19,CDH1,PLM2,"['CDH1', 'YHP1', 'MBP1', 'PLM2']",ref
-20,CDH1,PLM2,"['CDH1', 'YHP1', 'MBP1', 'PLM2']",ref
-21,CDH1,SWI4,"['CDH1', 'YHP1', 'SWI4']",ref
-22,CDH1,SWI5,"['CDH1', 'SWI5']",ref
-23,CDH1,SWI5,"['CDH1', 'NDD1', 'SWI5']",ref
-24,CDH1,SWI5,"['CDH1', 'NDD1', 'CDC20', 'SWI5']",ref
-25,CDH1,SWI5,"['CDH1', 'MCM1', 'SWI5']",ref
-26,CDH1,SWI5,"['CDH1', 'MCM1', 'CDC20', 'SWI5']",ref
-27,CDH1,YHP1,"['CDH1', 'YHP1']",ref
-28,CLN1,ACE2,"['CLN1', 'CDH1', 'ACE2']",ref
-29,CLN1,ACE2,"['CLN1', 'CDH1', 'NDD1', 'ACE2']",ref
-30,CLN1,ACE2,"['CLN1', 'CDH1', 'MCM1', 'ACE2']",ref
-31,CLN1,NRM1,"['CLN1', 'CDH1', 'NRM1']",ref
-32,CLN2,ACE2,"['CLN2', 'CDH1', 'ACE2']",ref
-33,CLN2,ACE2,"['CLN2', 'CDH1', 'NDD1', 'ACE2']",ref
-34,CLN2,ACE2,"['CLN2', 'CDH1', 'MCM1', 'ACE2']",ref
-35,CLN2,FKH1,"['CLN2', 'CDH1', 'FKH1']",ref
-36,CLN2,FKH2,"['CLN2', 'CDH1', 'FKH2']",ref
-37,CLN2,MBP1,"['CLN2', 'STB1', 'MBP1']",ref
-38,CLN2,MBP1,"['CLN2', 'CDH1', 'YHP1', 'MBP1']",ref
-39,CLN2,NRM1,"['CLN2', 'CDH1', 'NRM1']",ref
-40,CLN2,PLM2,"['CLN2', 'STB1', 'SWI4', 'PLM2']",ref
-41,CLN2,PLM2,"['CLN2', 'STB1', 'MBP1', 'PLM2']",ref
-42,CLN2,PLM2,"['CLN2', 'STB1', 'MBP1', 'PLM2']",ref
-43,CLN2,SWI4,"['CLN2', 'STB1', 'SWI4']",ref
-44,CLN2,SWI4,"['CLN2', 'CDH1', 'YHP1', 'SWI4']",ref
-45,CLN2,SWI5,"['CLN2', 'CDH1', 'SWI5']",ref
-46,CLN2,SWI5,"['CLN2', 'CDH1', 'NDD1', 'SWI5']",ref
-47,CLN2,SWI5,"['CLN2', 'CDH1', 'MCM1', 'SWI5']",ref
-48,CLN2,YHP1,"['CLN2', 'CDH1', 'YHP1']",ref
-49,FKH1,ACE2,"['FKH1', 'ACE2']",ref
-50,FKH1,ACE2,"['FKH1', 'CDC20', 'ACE2']",ref
-51,FKH2,ACE2,"['FKH2', 'ACE2']",ref
-52,FKH2,ACE2,"['FKH2', 'CDC20', 'ACE2']",ref
-53,HCM1,ACE2,"['HCM1', 'NDD1', 'ACE2']",ref
-54,HCM1,ACE2,"['HCM1', 'NDD1', 'CDC20', 'ACE2']",ref
-55,HCM1,ACE2,"['HCM1', 'MCM1', 'ACE2']",ref
-56,HCM1,ACE2,"['HCM1', 'MCM1', 'CDC20', 'ACE2']",ref
-57,MBP1,ACE2,"['MBP1', 'CLN1', 'CDH1', 'ACE2']",ref
-58,MBP1,ACE2,"['MBP1', 'PLM2', 'NDD1', 'ACE2']",ref
-59,MBP1,ACE2,"['MBP1', 'PLM2', 'MCM1', 'ACE2']",ref
-60,MBP1,ACE2,"['MBP1', 'PLM2', 'NDD1', 'ACE2']",ref
-61,MBP1,ACE2,"['MBP1', 'PLM2', 'MCM1', 'ACE2']",ref
-62,MBP1,ACE2,"['MBP1', 'TOS4', 'NDD1', 'ACE2']",ref
-63,MBP1,ACE2,"['MBP1', 'TOS4', 'MCM1', 'ACE2']",ref
-64,MBP1,ACE2,"['MBP1', 'CLN1', 'CDH1', 'ACE2']",ref
-65,MBP1,ACE2,"['MBP1', 'CLN2', 'CDH1', 'ACE2']",ref
-66,MBP1,FKH1,"['MBP1', 'CLN1', 'CDH1', 'FKH1']",ref
-67,MBP1,FKH1,"['MBP1', 'PLM2', 'FKH1']",ref
-68,MBP1,FKH1,"['MBP1', 'HCM1', 'FKH1']",ref
-69,MBP1,FKH1,"['MBP1', 'PLM2', 'FKH1']",ref
-70,MBP1,FKH1,"['MBP1', 'TOS4', 'FKH1']",ref
-71,MBP1,FKH1,"['MBP1', 'CLN1', 'CDH1', 'FKH1']",ref
-72,MBP1,FKH1,"['MBP1', 'CLN2', 'CDH1', 'FKH1']",ref
-73,MBP1,NRM1,"['MBP1', 'CLN1', 'CDH1', 'NRM1']",ref
-74,MBP1,NRM1,"['MBP1', 'CLN1', 'CDH1', 'NRM1']",ref
-75,MBP1,NRM1,"['MBP1', 'CLN2', 'CDH1', 'NRM1']",ref
-76,MBP1,NRM1,"['MBP1', 'NRM1']",ref
-77,MBP1,PLM2,"['MBP1', 'PLM2']",ref
-78,MBP1,PLM2,"['MBP1', 'PLM2']",ref
-79,MBP1,PLM2,"['MBP1', 'YHP1', 'SWI4', 'PLM2']",ref
-80,MBP1,PLM2,"['MBP1', 'YHP1', 'SWI6', 'PLM2']",ref
-81,MBP1,SWI4,"['MBP1', 'CLN2', 'STB1', 'SWI4']",ref
-82,MBP1,SWI4,"['MBP1', 'YHP1', 'SWI4']",ref
-83,MBP1,SWI5,"['MBP1', 'CLN1', 'CDH1', 'SWI5']",ref
-84,MBP1,SWI5,"['MBP1', 'PLM2', 'NDD1', 'SWI5']",ref
-85,MBP1,SWI5,"['MBP1', 'PLM2', 'MCM1', 'SWI5']",ref
-86,MBP1,SWI5,"['MBP1', 'PLM2', 'NDD1', 'SWI5']",ref
-87,MBP1,SWI5,"['MBP1', 'PLM2', 'MCM1', 'SWI5']",ref
-88,MBP1,SWI5,"['MBP1', 'TOS4', 'NDD1', 'SWI5']",ref
-89,MBP1,SWI5,"['MBP1', 'TOS4', 'MCM1', 'SWI5']",ref
-90,MBP1,SWI5,"['MBP1', 'CLN1', 'CDH1', 'SWI5']",ref
-91,MBP1,SWI5,"['MBP1', 'CLN2', 'CDH1', 'SWI5']",ref
-92,MCM1,ACE2,"['MCM1', 'ACE2']",ref
-93,MCM1,ACE2,"['MCM1', 'CDC20', 'ACE2']",ref
-94,NDD1,ACE2,"['NDD1', 'ACE2']",ref
-95,NDD1,ACE2,"['NDD1', 'CDC20', 'ACE2']",ref
-96,PLM2,ACE2,"['PLM2', 'NDD1', 'ACE2']",ref
-97,PLM2,ACE2,"['PLM2', 'NDD1', 'CDC20', 'ACE2']",ref
-98,PLM2,ACE2,"['PLM2', 'MCM1', 'ACE2']",ref
-99,PLM2,ACE2,"['PLM2', 'MCM1', 'CDC20', 'ACE2']",ref
-100,SWI4,ACE2,"['SWI4', 'PLM2', 'NDD1', 'ACE2']",ref
-101,SWI4,ACE2,"['SWI4', 'PLM2', 'MCM1', 'ACE2']",ref
-102,SWI4,ACE2,"['SWI4', 'TOS4', 'NDD1', 'ACE2']",ref
-103,SWI4,ACE2,"['SWI4', 'TOS4', 'MCM1', 'ACE2']",ref
-104,SWI4,ACE2,"['SWI4', 'CLN1', 'CDH1', 'ACE2']",ref
-105,SWI4,ACE2,"['SWI4', 'CLN2', 'CDH1', 'ACE2']",ref
-106,SWI4,NRM1,"['SWI4', 'CLN1', 'CDH1', 'NRM1']",ref
-107,SWI4,NRM1,"['SWI4', 'CLN2', 'CDH1', 'NRM1']",ref
-108,SWI4,NRM1,"['SWI4', 'NRM1']",ref
-109,SWI4,PLM2,"['SWI4', 'PLM2']",ref
-110,SWI6,ACE2,"['SWI6', 'CLN1', 'CDH1', 'ACE2']",ref
-111,SWI6,ACE2,"['SWI6', 'CLN2', 'CDH1', 'ACE2']",ref
-112,SWI6,ACE2,"['SWI6', 'PLM2', 'NDD1', 'ACE2']",ref
-113,SWI6,ACE2,"['SWI6', 'PLM2', 'MCM1', 'ACE2']",ref
-114,SWI6,ACE2,"['SWI6', 'TOS4', 'NDD1', 'ACE2']",ref
-115,SWI6,ACE2,"['SWI6', 'TOS4', 'MCM1', 'ACE2']",ref
-116,SWI6,FKH1,"['SWI6', 'CLN1', 'CDH1', 'FKH1']",ref
-117,SWI6,FKH1,"['SWI6', 'CLN2', 'CDH1', 'FKH1']",ref
-118,SWI6,FKH1,"['SWI6', 'HCM1', 'FKH1']",ref
-119,SWI6,FKH1,"['SWI6', 'PLM2', 'FKH1']",ref
-120,SWI6,FKH1,"['SWI6', 'TOS4', 'FKH1']",ref
-121,SWI6,NRM1,"['SWI6', 'CLN1', 'CDH1', 'NRM1']",ref
-122,SWI6,NRM1,"['SWI6', 'CLN2', 'CDH1', 'NRM1']",ref
-123,SWI6,NRM1,"['SWI6', 'NRM1']",ref
-124,SWI6,PLM2,"['SWI6', 'PLM2']",ref
-125,SWI6,PLM2,"['SWI6', 'YHP1', 'SWI4', 'PLM2']",ref
-126,SWI6,SWI4,"['SWI6', 'CLN2', 'STB1', 'SWI4']",ref
-127,SWI6,SWI4,"['SWI6', 'YHP1', 'SWI4']",ref
-128,SWI6,SWI5,"['SWI6', 'CLN1', 'CDH1', 'SWI5']",ref
-129,SWI6,SWI5,"['SWI6', 'CLN2', 'CDH1', 'SWI5']",ref
-130,SWI6,SWI5,"['SWI6', 'PLM2', 'NDD1', 'SWI5']",ref
-131,SWI6,SWI5,"['SWI6', 'PLM2', 'MCM1', 'SWI5']",ref
-132,SWI6,SWI5,"['SWI6', 'TOS4', 'NDD1', 'SWI5']",ref
-133,SWI6,SWI5,"['SWI6', 'TOS4', 'MCM1', 'SWI5']",ref
-134,TOS4,ACE2,"['TOS4', 'NDD1', 'ACE2']",ref
-135,TOS4,ACE2,"['TOS4', 'NDD1', 'CDC20', 'ACE2']",ref
-136,TOS4,ACE2,"['TOS4', 'MCM1', 'ACE2']",ref
-137,TOS4,ACE2,"['TOS4', 'MCM1', 'CDC20', 'ACE2']",ref
+13,CDH1,NRM1,"['CDH1', 'NRM1']",ref
+14,CLN1,ACE2,"['CLN1', 'CDH1', 'ACE2']",ref
+15,CLN1,ACE2,"['CLN1', 'CDH1', 'NDD1', 'ACE2']",ref
+16,CLN1,ACE2,"['CLN1', 'CDH1', 'MCM1', 'ACE2']",ref
+17,CLN1,NRM1,"['CLN1', 'CDH1', 'NRM1']",ref
+18,CLN2,ACE2,"['CLN2', 'CDH1', 'ACE2']",ref
+19,CLN2,ACE2,"['CLN2', 'CDH1', 'NDD1', 'ACE2']",ref
+20,CLN2,ACE2,"['CLN2', 'CDH1', 'MCM1', 'ACE2']",ref
+21,CLN2,NRM1,"['CLN2', 'CDH1', 'NRM1']",ref
+22,FKH1,ACE2,"['FKH1', 'ACE2']",ref
+23,FKH1,ACE2,"['FKH1', 'CDC20', 'ACE2']",ref
+24,FKH2,ACE2,"['FKH2', 'ACE2']",ref
+25,FKH2,ACE2,"['FKH2', 'CDC20', 'ACE2']",ref
+26,MCM1,ACE2,"['MCM1', 'ACE2']",ref
+27,MCM1,ACE2,"['MCM1', 'CDC20', 'ACE2']",ref
+28,NDD1,ACE2,"['NDD1', 'ACE2']",ref
+29,NDD1,ACE2,"['NDD1', 'CDC20', 'ACE2']",ref
