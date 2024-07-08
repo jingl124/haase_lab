@@ -137,17 +137,17 @@ def extract_features(series):
     features = {
         'num_peaks': len(peaks),
         'num_valleys': len(valleys),
-        # 'mean_slope': np.mean(slope),
+        'mean_slope': np.mean(slope),
         'mean_curvature': np.mean(curvature),
-        # 'dominant_freq': dominant_freq,
-        # 'peak_to_peak_amplitude': np.max(series) - np.min(series),
-        # 'variance': np.var(series),
-        # 'skewness': scipy.stats.skew(series),
-        # 'kurtosis': scipy.stats.kurtosis(series),
-        # 'mean_value': np.mean(series),
-        # 'std_deviation': np.std(series)
-        # 'max_value': np.max(series),
-        # 'min_value': np.min(series)
+        'dominant_freq': dominant_freq,
+        'peak_to_peak_amplitude': np.max(series) - np.min(series),
+        'variance': np.var(series),
+        'skewness': scipy.stats.skew(series),
+        'kurtosis': scipy.stats.kurtosis(series),
+        'mean_value': np.mean(series),
+        'std_deviation': np.std(series),
+        'max_value': np.max(series),
+        'min_value': np.min(series)
     }
     return features
 
@@ -789,8 +789,35 @@ def main():
     # build_network(df)
     # find_all_paths()
     
-    # get clusters and plot line graph samples
-    plot_clusters(7, scaled=True)
+    # # get clusters and plot line graph samples
+    # plot_clusters(7, scaled=True)
+
+    for tf in exp_dict.keys():
+        tf_data = exp_dict[tf]
+        plt.figure(figsize=(10, 6))
+        for target in tf_data.keys():
+            if tf == target:
+                continue
+            data = tf_data[target]
+            timestamps, values = zip(*data)
+            params = sigmoid_curve_fit(tf, target)
+            timestamps = list(timestamps)
+            values = list(values)
+            if params is None:
+                continue
+            # amp = abs(params[0])
+            # color = ''
+            # if amp > amp_thresh:
+            #     color = 'green'
+            # else:
+            #     color = 'red'
+            #plt.plot(timestamps, values, color=color, marker='o', linestyle='-')
+            plt.plot(timestamps, values, marker='o', linestyle='-')
+            plt.savefig(f"time_series_plots/tf_target/{tf}_{target}.png")
+            plt.close()
+        # plt.savefig(f"time_series_plots/amp_thresh_{amp_thresh}/{tf}.png")
+        # plt.savefig(f"time_series_plots/tf/{tf}.png")
+        
         
 
 if __name__ == '__main__':
