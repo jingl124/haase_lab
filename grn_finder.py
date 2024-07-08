@@ -172,21 +172,21 @@ def classify_time_series(num_clusters):
     print(scaled_df)
     features_scaled = scaler.fit_transform(scaled_df)
 
-    # # Elbow method to determine the optimal number of clusters
-    # wcss = []
-    # max_clusters = 10
-    # for k in range(1, max_clusters + 1):
-    #     kmeans = KMeans(n_clusters=k, random_state=42)
-    #     kmeans.fit(features_scaled)
-    #     wcss.append(kmeans.inertia_)
+    # Elbow method to determine the optimal number of clusters
+    wcss = []
+    max_clusters = 10
+    for k in range(1, max_clusters + 1):
+        kmeans = KMeans(n_clusters=k, random_state=42)
+        kmeans.fit(features_scaled)
+        wcss.append(kmeans.inertia_)
 
-    # # Plotting the elbow curve
-    # plt.figure(figsize=(8, 5))
-    # plt.plot(range(1, max_clusters + 1), wcss, marker='o')
-    # plt.title('Elbow Method for Optimal k')
-    # plt.xlabel('Number of Clusters (k)')
-    # plt.ylabel('Within-Cluster Sum of Squares (WCSS)')
-    # plt.show()
+    # Plotting the elbow curve
+    plt.figure(figsize=(8, 5))
+    plt.plot(range(1, max_clusters + 1), wcss, marker='o')
+    plt.title('Elbow Method for Optimal k')
+    plt.xlabel('Number of Clusters (k)')
+    plt.ylabel('Within-Cluster Sum of Squares (WCSS)')
+    plt.show()
 
     # Apply KMeans clustering
     kmeans = KMeans(n_clusters=num_clusters, random_state=2)
