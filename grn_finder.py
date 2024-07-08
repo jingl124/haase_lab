@@ -137,15 +137,15 @@ def extract_features(series):
     features = {
         'num_peaks': len(peaks),
         'num_valleys': len(valleys),
-        'mean_slope': np.mean(slope),
+        # 'mean_slope': np.mean(slope),
         'mean_curvature': np.mean(curvature),
-        'dominant_freq': dominant_freq,
-        'peak_to_peak_amplitude': np.max(series) - np.min(series),
-        'variance': np.var(series),
-        'skewness': scipy.stats.skew(series),
-        'kurtosis': scipy.stats.kurtosis(series),
-        'mean_value': np.mean(series),
-        'std_deviation': np.std(series)
+        # 'dominant_freq': dominant_freq,
+        # 'peak_to_peak_amplitude': np.max(series) - np.min(series),
+        # 'variance': np.var(series),
+        # 'skewness': scipy.stats.skew(series),
+        # 'kurtosis': scipy.stats.kurtosis(series),
+        # 'mean_value': np.mean(series),
+        # 'std_deviation': np.std(series)
         # 'max_value': np.max(series),
         # 'min_value': np.min(series)
     }
@@ -192,7 +192,7 @@ def classify_time_series(num_clusters):
     kmeans = KMeans(n_clusters=num_clusters, random_state=2)
     clusters = kmeans.fit_predict(features_scaled)
     feature_df['cluster'] = clusters
-
+    
     return feature_df
 
 def plot_clusters(num_clusters, scaled=False):
@@ -785,12 +785,12 @@ def main():
     # # create heat maps
     # create_heat_maps(df)
 
-    # reformat data and build network
-    build_network(df)
-    find_all_paths()
+    # # reformat data and build network
+    # build_network(df)
+    # find_all_paths()
     
-    # # get clusters and plot line graph samples
-    # plot_clusters(7, scaled=False)
+    # get clusters and plot line graph samples
+    plot_clusters(7, scaled=True)
         
 
 if __name__ == '__main__':
