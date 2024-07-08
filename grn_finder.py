@@ -172,21 +172,21 @@ def classify_time_series(num_clusters):
     print(scaled_df)
     features_scaled = scaler.fit_transform(scaled_df)
 
-    # Elbow method to determine the optimal number of clusters
-    wcss = []
-    max_clusters = 10
-    for k in range(1, max_clusters + 1):
-        kmeans = KMeans(n_clusters=k, random_state=42)
-        kmeans.fit(features_scaled)
-        wcss.append(kmeans.inertia_)
+    # # Elbow method to determine the optimal number of clusters
+    # wcss = []
+    # max_clusters = 10
+    # for k in range(1, max_clusters + 1):
+    #     kmeans = KMeans(n_clusters=k, random_state=42)
+    #     kmeans.fit(features_scaled)
+    #     wcss.append(kmeans.inertia_)
 
-    # Plotting the elbow curve
-    plt.figure(figsize=(8, 5))
-    plt.plot(range(1, max_clusters + 1), wcss, marker='o')
-    plt.title('Elbow Method for Optimal k')
-    plt.xlabel('Number of Clusters (k)')
-    plt.ylabel('Within-Cluster Sum of Squares (WCSS)')
-    plt.show()
+    # # Plotting the elbow curve
+    # plt.figure(figsize=(8, 5))
+    # plt.plot(range(1, max_clusters + 1), wcss, marker='o')
+    # plt.title('Elbow Method for Optimal k')
+    # plt.xlabel('Number of Clusters (k)')
+    # plt.ylabel('Within-Cluster Sum of Squares (WCSS)')
+    # plt.show()
 
     # Apply KMeans clustering
     kmeans = KMeans(n_clusters=num_clusters, random_state=2)
@@ -792,6 +792,7 @@ def main():
     # # get clusters and plot line graph samples
     # plot_clusters(7, scaled=True)
 
+    amp_thresh = 0.2
     for tf in exp_dict.keys():
         tf_data = exp_dict[tf]
         plt.figure(figsize=(10, 6))
@@ -805,20 +806,15 @@ def main():
             values = list(values)
             if params is None:
                 continue
-            # amp = abs(params[0])
-            # color = ''
-            # if amp > amp_thresh:
-            #     color = 'green'
-            # else:
-            #     color = 'red'
-            #plt.plot(timestamps, values, color=color, marker='o', linestyle='-')
-            plt.plot(timestamps, values, marker='o', linestyle='-')
-            plt.savefig(f"time_series_plots/tf_target/{tf}_{target}.png")
-            plt.close()
-        # plt.savefig(f"time_series_plots/amp_thresh_{amp_thresh}/{tf}.png")
-        # plt.savefig(f"time_series_plots/tf/{tf}.png")
-        
-        
+            amp = abs(params[0])
+            color = ''
+            if amp > amp_thresh:
+                color = 'green'
+            else:
+                color = 'red'
+            plt.plot(timestamps, values, color=color, marker='o', linestyle='-')
+        plt.savefig(f"time_series_plots/amp_thresh_{amp_thresh}/{tf}.png")
+        plt.close()
 
 if __name__ == '__main__':
     main()   
