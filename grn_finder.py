@@ -785,12 +785,12 @@ def main():
     # # create heat maps
     # create_heat_maps(df)
 
-    # # reformat data and build network
-    # build_network(df)
-    # find_all_paths()
+    # reformat data and build network
+    build_network(df)
+    find_all_paths()
     
-    # get clusters and plot line graph samples
-    plot_clusters(7, scaled=False)
+    # # get clusters and plot line graph samples
+    # plot_clusters(7, scaled=False)
         
 
 if __name__ == '__main__':
