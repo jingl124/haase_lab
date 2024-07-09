@@ -636,8 +636,7 @@ def paths_to_df(graph, path_limit=3):
             gene2 = genes[j]
             paths = find_paths(gene1, gene2, graph, path_limit)
             if paths is None:
-                path = ''
-                time = np.nan
+                continue
             else:
                 for p in paths:
                     path = path_to_strings(gene1, p)
@@ -645,7 +644,7 @@ def paths_to_df(graph, path_limit=3):
                         time = path_time(p)
                     else:
                         time = np.nan
-            path_df.loc[len(path_df.index)] = [gene1, gene2, path, graph, time]
+                    path_df.loc[len(path_df.index)] = [gene1, gene2, path, graph, time]
     print(path_df)
     return path_df
 
