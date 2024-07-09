@@ -531,9 +531,10 @@ def find_paths(tf, target, graph, path_limit=3):
     '''
     tf_node = gene_nodes[tf]
     paths = []
+    edges = get_edges_info(tf_node.gene, graph)
     for edge in tf_node.edges:
-        edges = get_edges_info(tf_node.gene, graph)
-        if [tf_node.gene, edge.target.gene] in edges:
+        str_edge = [tf, edge.target.gene]
+        if str_edge in edges:
             new_paths = find_paths_recursive([[edge]], tf, target, graph, 1, path_limit)
             paths.extend(new_paths)
     if len(paths) == 0:
@@ -627,7 +628,7 @@ def paths_to_df(graph, path_limit=3):
         raise ValueError("Improper input for graph attribute.")
     
     # getting paths
-    path_df = pd.DataFrame(columns=['start', 'end', 'path', 'graph'])
+    path_df = pd.DataFrame(columns=['start', 'end', 'path', 'graph', 'time'])
     genes = list(gene_nodes.keys())
     for i in range(len(genes)):
         for j in range(len(genes)):
@@ -635,11 +636,36 @@ def paths_to_df(graph, path_limit=3):
             gene2 = genes[j]
             paths = find_paths(gene1, gene2, graph, path_limit)
             if paths is None:
-                break
-            for p in paths:
-                path = path_to_strings(gene1, p)
-                path_df.loc[len(path_df.index)] = [gene1, gene2, path, graph]
+                path = ''
+                time = np.nan
+            else:
+                for p in paths:
+                    path = path_to_strings(gene1, p)
+                    if graph == 'grn':
+                        time = path_time(p)
+                    else:
+                        time = np.nan
+            path_df.loc[len(path_df.index)] = [gene1, gene2, path, graph, time]
+    print(path_df)
     return path_df
+
+def path_time(path):
+    '''
+    Calculate the total amount of time it takes for a full path to activate/repress.
+
+    Parameters:
+    path (list of Edges): represents the Edges in a path
+
+    Returns:
+    time (float): total time of path
+    '''
+    time = 0.0
+    for edge in path:
+        t = edge.time
+        if t is None:
+            return np.nan
+        time = time + t
+    return time
 
 def find_all_paths(path_limit=3):
     '''
@@ -650,7 +676,7 @@ def find_all_paths(path_limit=3):
     print(len(df1.index))
     print(len(df2.index))
     df = pd.concat([df1, df2], axis=0).reset_index(drop=True)
-    df = df.sort_values(by=['start', 'end']).reset_index(drop=True)
+    df = df.sort_values(by=['graph', 'start', 'end']).reset_index(drop=True)
     df.to_csv("paths.csv")
 
 def path_to_strings(tf, path):
@@ -785,36 +811,36 @@ def main():
     # # create heat maps
     # create_heat_maps(df)
 
-    # # reformat data and build network
-    # build_network(df)
-    # find_all_paths()
+    # reformat data and build network
+    build_network(df)
+    find_all_paths()
     
     # # get clusters and plot line graph samples
     # plot_clusters(7, scaled=True)
 
-    amp_thresh = 0.2
-    for tf in exp_dict.keys():
-        tf_data = exp_dict[tf]
-        plt.figure(figsize=(10, 6))
-        for target in tf_data.keys():
-            if tf == target:
-                continue
-            data = tf_data[target]
-            timestamps, values = zip(*data)
-            params = sigmoid_curve_fit(tf, target)
-            timestamps = list(timestamps)
-            values = list(values)
-            if params is None:
-                continue
-            amp = abs(params[0])
-            color = ''
-            if amp > amp_thresh:
-                color = 'green'
-            else:
-                color = 'red'
-            plt.plot(timestamps, values, color=color, marker='o', linestyle='-')
-        plt.savefig(f"time_series_plots/amp_thresh_{amp_thresh}/{tf}.png")
-        plt.close()
+    # amp_thresh = 0.2
+    # for tf in exp_dict.keys():
+    #     tf_data = exp_dict[tf]
+    #     plt.figure(figsize=(10, 6))
+    #     for target in tf_data.keys():
+    #         if tf == target:
+    #             continue
+    #         data = tf_data[target]
+    #         timestamps, values = zip(*data)
+    #         params = sigmoid_curve_fit(tf, target)
+    #         timestamps = list(timestamps)
+    #         values = list(values)
+    #         if params is None:
+    #             continue
+    #         amp = abs(params[0])
+    #         color = ''
+    #         if amp > amp_thresh:
+    #             color = 'green'
+    #         else:
+    #             color = 'red'
+    #         plt.plot(timestamps, values, color=color, marker='o', linestyle='-')
+    #     plt.savefig(f"time_series_plots/amp_thresh_{amp_thresh}/{tf}.png")
+    #     plt.close()
 
 if __name__ == '__main__':
     main()   

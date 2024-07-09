@@ -17,7 +17,7 @@ TOS4,target tf,17,0.2
 SWI4,target tf,17,0.2
 SWI5,target tf,17,0.2
 SWI6,target tf,17,0.2
-ACE2,target tf,17,0.2
+ACE2,target tf,5,0.2
 NDD1,target tf,17,0.2
 FKH1,target tf,17,0.2
 FKH2,target tf,17,0.2
