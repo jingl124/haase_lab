@@ -12,6 +12,8 @@ import math
 import datetime
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
+import antropy as ant  # For entropy calculation
+import statsmodels.tsa.stattools # import acf, pacf
 
 importlib.reload(structs)
 
@@ -130,13 +132,44 @@ def extract_features(series):
     scaled_series_np = series.to_numpy() if isinstance(series, pd.Series) else np.array(series)
     fft_values = np.abs(scipy.fft.fft(scaled_series_np))
     dominant_freq = np.argmax(fft_values[1:len(fft_values)//2]) + 1  # Ignore the zero frequency
-    # fft_values = np.abs(scipy.fft.fft(series))
-    # dominant_freq = np.argmax(fft_values[1:len(fft_values)//2]) + 1  # Ignore the zero frequency
+  
+        # Calculate number of oscillations
+    num_oscillations = min(len(peaks), len(valleys))
     
+    # Autocorrelation and partial autocorrelation
+    autocorr = statsmodels.tsa.stattools.acf(series, nlags=10)
+    partial_autocorr = statsmodels.tsa.stattools.pacf(series, nlags=10)
+    
+    # Entropy
+    entropy = ant.perm_entropy(series, normalize=True)
+    
+    # Hurst Exponent
+    hurst_exponent = ant.hjorth_params(series)[0]  # Hjorth mobility can be used as a proxy for Hurst exponent
+    
+    # Energy
+    energy = np.sum(series**2)
+    
+    # Root Mean Square (RMS)
+    rms = np.sqrt(np.mean(series**2))
+    
+    # Zero-Crossing Rate
+    zero_crossings = len(np.where(np.diff(np.sign(series)))[0])
+    
+    # Spectral Centroid and Bandwidth
+    spectral_centroid = np.sum(np.arange(len(fft_values)) * fft_values) / np.sum(fft_values)
+    spectral_bandwidth = np.sqrt(np.sum((np.arange(len(fft_values)) - spectral_centroid)**2 * fft_values) / np.sum(fft_values))
+    
+    # Area Under the Curve (AUC)
+    auc = scipy.integrate.trapz(series)
+    
+    # Linearity (slope of linear fit)
+    linear_fit = np.polyfit(np.arange(len(series)), series, 1)
+    slope_of_linear_fit = linear_fit[0]
 
     features = {
         'num_peaks': len(peaks),
         'num_valleys': len(valleys),
+        'num_oscillations': num_oscillations,
         'mean_slope': np.mean(slope),
         'mean_curvature': np.mean(curvature),
         'dominant_freq': dominant_freq,
@@ -147,7 +180,18 @@ def extract_features(series):
         'mean_value': np.mean(series),
         'std_deviation': np.std(series),
         'max_value': np.max(series),
-        'min_value': np.min(series)
+        'min_value': np.min(series),
+        'autocorrelation': autocorr[1],  # Lag-1 autocorrelation
+        'partial_autocorrelation': partial_autocorr[1],  # Lag-1 partial autocorrelation
+        'entropy': entropy,
+        'hurst_exponent': hurst_exponent,
+        'energy': energy,
+        'rms': rms,
+        'zero_crossing_rate': zero_crossings,
+        'spectral_centroid': spectral_centroid,
+        'spectral_bandwidth': spectral_bandwidth,
+        'auc': auc,
+        'slope_of_linear_fit': slope_of_linear_fit
     }
     return features
 
@@ -814,32 +858,8 @@ def main():
     build_network(df)
     find_all_paths()
     
-    # # get clusters and plot line graph samples
-    # plot_clusters(7, scaled=True)
-
-    # amp_thresh = 0.2
-    # for tf in exp_dict.keys():
-    #     tf_data = exp_dict[tf]
-    #     plt.figure(figsize=(10, 6))
-    #     for target in tf_data.keys():
-    #         if tf == target:
-    #             continue
-    #         data = tf_data[target]
-    #         timestamps, values = zip(*data)
-    #         params = sigmoid_curve_fit(tf, target)
-    #         timestamps = list(timestamps)
-    #         values = list(values)
-    #         if params is None:
-    #             continue
-    #         amp = abs(params[0])
-    #         color = ''
-    #         if amp > amp_thresh:
-    #             color = 'green'
-    #         else:
-    #             color = 'red'
-    #         plt.plot(timestamps, values, color=color, marker='o', linestyle='-')
-    #     plt.savefig(f"time_series_plots/amp_thresh_{amp_thresh}/{tf}.png")
-    #     plt.close()
-
+    # get clusters and plot line graph samples
+    plot_clusters(9, scaled=False)
+    
 if __name__ == '__main__':
     main()   
