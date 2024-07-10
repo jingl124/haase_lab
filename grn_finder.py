@@ -10,10 +10,6 @@ import graphviz
 import matplotlib
 import math
 import datetime
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
-import antropy as ant  # For entropy calculation
-import statsmodels.tsa.stattools # import acf, pacf
 
 importlib.reload(structs)
 
@@ -28,6 +24,13 @@ thresh_df = pd.DataFrame(columns=['gene', 't_thresh', 'amp_thresh'])
 
 # global timestamp
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+# Constants
+DATA_DIR = "/Users/jingliu/Documents/haase/IDEA_data"
+DATA_FILE = "idea_tall_expression_data.tsv"
+GENE_DIR = '/Users/jingliu/Documents/haase/haase_lab'
+GENE_FILE = 'genes_info.csv'
+
 
 # extracting and wrangling data
 def extract_expression_data(df):
@@ -718,13 +721,8 @@ def df_to_edges(df):
 
 # main function
 def main():
-    dir = "/Users/jingliu/Documents/haase/IDEA_data"
-    file = "idea_tall_expression_data.tsv"
-    path = os.path.join(dir, file)
-
-    gene_dir = '/Users/jingliu/Documents/haase/haase_lab'
-    gene_file = 'genes_info.csv'
-    gene_path = os.path.join(gene_dir, gene_file)
+    path = os.path.join(DATA_DIR, DATA_FILE)
+    gene_path = os.path.join(GENE_DIR, GENE_FILE)
 
     df = filter_df(path, gene_path)
 
@@ -736,12 +734,9 @@ def main():
     # # create heat maps
     # create_heat_maps(df)
 
-    # # reformat data and build network
-    # build_network(df)
-    # find_all_paths()
-    
-    # get clusters and plot line graph samples
-    plot_clusters(8, scaled=False)
+    # reformat data and build network
+    build_network(df)
+    find_all_paths()
     
 if __name__ == '__main__':
     main()   
