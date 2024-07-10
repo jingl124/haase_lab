@@ -88,7 +88,7 @@ def sort_genes(path, sep):
             tfs.append(gene)
     return tfs, targets
 
-def filter_df(path, gene_path):
+def filter_df(path, gene_path=None):
     '''
     Read input files to store data of desired TFs and targets into a pandas DataFrame.
 
@@ -103,10 +103,11 @@ def filter_df(path, gene_path):
     df = pd.read_csv(path, sep='\t')
 
     # restricting nodes
-    tfs, targets = sort_genes(gene_path, ',')
-    df = df[df['TF'].isin(tfs) & df['GeneName'].isin(targets)]
-    if df.empty:
-        raise Exception("DataFrame is empty. Please check the input TFs and target genes.")
+    if gene_path != None:
+        tfs, targets = sort_genes(gene_path, ',')
+        df = df[df['TF'].isin(tfs) & df['GeneName'].isin(targets)]
+        if df.empty:
+            raise Exception("DataFrame is empty. Please check the input TFs and target genes.")
     
     # filter columns
     df = df[['TF', 'GeneName', 'time', 'log2_cleaned_ratio']]
@@ -138,7 +139,7 @@ def extract_features(series):
     
     # Autocorrelation and partial autocorrelation
     autocorr = statsmodels.tsa.stattools.acf(series, nlags=10)
-    partial_autocorr = statsmodels.tsa.stattools.pacf(series, nlags=10)
+    # partial_autocorr = statsmodels.tsa.stattools.pacf(series, nlags=10)
     
     # Entropy
     entropy = ant.perm_entropy(series, normalize=True)
@@ -169,20 +170,20 @@ def extract_features(series):
     features = {
         'num_peaks': len(peaks),
         'num_valleys': len(valleys),
-        'num_oscillations': num_oscillations,
+        # 'num_oscillations': num_oscillations,
         'mean_slope': np.mean(slope),
         'mean_curvature': np.mean(curvature),
         'dominant_freq': dominant_freq,
-        'peak_to_peak_amplitude': np.max(series) - np.min(series),
-        'variance': np.var(series),
+        # 'peak_to_peak_amplitude': np.max(series) - np.min(series),
+        # 'variance': np.var(series),
         'skewness': scipy.stats.skew(series),
         'kurtosis': scipy.stats.kurtosis(series),
-        'mean_value': np.mean(series),
-        'std_deviation': np.std(series),
-        'max_value': np.max(series),
-        'min_value': np.min(series),
+        # 'mean_value': np.mean(series),
+        # 'std_deviation': np.std(series),
+        # 'max_value': np.max(series),
+        # 'min_value': np.min(series),
         'autocorrelation': autocorr[1],  # Lag-1 autocorrelation
-        'partial_autocorrelation': partial_autocorr[1],  # Lag-1 partial autocorrelation
+        # 'partial_autocorrelation': partial_autocorr[1],  # Lag-1 partial autocorrelation
         'entropy': entropy,
         'hurst_exponent': hurst_exponent,
         'energy': energy,
@@ -216,21 +217,21 @@ def classify_time_series(num_clusters):
     print(scaled_df)
     features_scaled = scaler.fit_transform(scaled_df)
 
-    # # Elbow method to determine the optimal number of clusters
-    # wcss = []
-    # max_clusters = 10
-    # for k in range(1, max_clusters + 1):
-    #     kmeans = KMeans(n_clusters=k, random_state=42)
-    #     kmeans.fit(features_scaled)
-    #     wcss.append(kmeans.inertia_)
+    # Elbow method to determine the optimal number of clusters
+    wcss = []
+    max_clusters = 10
+    for k in range(1, max_clusters + 1):
+        kmeans = KMeans(n_clusters=k, random_state=42)
+        kmeans.fit(features_scaled)
+        wcss.append(kmeans.inertia_)
 
-    # # Plotting the elbow curve
-    # plt.figure(figsize=(8, 5))
-    # plt.plot(range(1, max_clusters + 1), wcss, marker='o')
-    # plt.title('Elbow Method for Optimal k')
-    # plt.xlabel('Number of Clusters (k)')
-    # plt.ylabel('Within-Cluster Sum of Squares (WCSS)')
-    # plt.show()
+    # Plotting the elbow curve
+    plt.figure(figsize=(8, 5))
+    plt.plot(range(1, max_clusters + 1), wcss, marker='o')
+    plt.title('Elbow Method for Optimal k')
+    plt.xlabel('Number of Clusters (k)')
+    plt.ylabel('Within-Cluster Sum of Squares (WCSS)')
+    plt.show()
 
     # Apply KMeans clustering
     kmeans = KMeans(n_clusters=num_clusters, random_state=2)
@@ -875,12 +876,12 @@ def main():
     # # create heat maps
     # create_heat_maps(df)
 
-    # reformat data and build network
-    build_network(df)
-    find_all_paths()
+    # # reformat data and build network
+    # build_network(df)
+    # find_all_paths()
     
-    # # get clusters and plot line graph samples
-    # plot_clusters(7, scaled=False)
+    # get clusters and plot line graph samples
+    plot_clusters(8, scaled=False)
     
 if __name__ == '__main__':
     main()   
