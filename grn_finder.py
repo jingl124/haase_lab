@@ -672,7 +672,7 @@ def paths_to_df(graph, path_limit=3):
         raise ValueError("Improper input for graph attribute.")
     
     # getting paths
-    path_df = pd.DataFrame(columns=['start', 'end', 'path', 'graph', 'time'])
+    path_df = pd.DataFrame(columns=['start', 'end', 'path', 'graph', 'sign', 'time'])
     genes = list(gene_nodes.keys())
     for i in range(len(genes)):
         for j in range(len(genes)):
@@ -688,7 +688,8 @@ def paths_to_df(graph, path_limit=3):
                         time = path_time(p)
                     else:
                         time = np.nan
-                    path_df.loc[len(path_df.index)] = [gene1, gene2, path, graph, time]
+                    sign = path_sign(p)
+                    path_df.loc[len(path_df.index)] = [gene1, gene2, path, graph, sign, time]
     print(path_df)
     return path_df
 
@@ -709,6 +710,26 @@ def path_time(path):
             return np.nan
         time = time + t
     return time
+
+def path_sign(path):
+    '''
+    Calculate the sign (activation/repression) of a given path.
+
+    Parameters:
+    path (list of Edges): represents the Edges in a path
+
+    Returns:
+    sign (string): 'act' if activating, 'rep' if repressing
+    '''
+    if path is None or len(path) == 0:
+        return None
+    neg_edges = 0 # negative edge counter
+    for edge in path:
+        if not edge.act:
+            neg_edges += 1
+    if neg_edges % 2 == 1:
+        return 'rep'
+    return 'act'
 
 def find_all_paths(path_limit=3):
     '''
@@ -858,8 +879,8 @@ def main():
     build_network(df)
     find_all_paths()
     
-    # get clusters and plot line graph samples
-    plot_clusters(9, scaled=False)
+    # # get clusters and plot line graph samples
+    # plot_clusters(7, scaled=False)
     
 if __name__ == '__main__':
     main()   
