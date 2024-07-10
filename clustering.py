@@ -60,33 +60,14 @@ def extract_features(series):
     features = {
         'num_peaks': len(peaks),
         'num_valleys': len(valleys),
-        # 'num_oscillations': num_oscillations,
         'mean_slope': np.mean(slope),
         'mean_curvature': np.mean(curvature),
         'dominant_freq': dominant_freq,
-        # 'peak_to_peak_amplitude': np.max(series) - np.min(series),
-        # 'variance': np.var(series),
         'skewness': scipy.stats.skew(series),
-        'kurtosis': scipy.stats.kurtosis(series),
-        # 'mean_value': np.mean(series),
-        # 'std_deviation': np.std(series),
-        # 'max_value': np.max(series),
-        # 'min_value': np.min(series),
-        'autocorrelation': autocorr[1],  # Lag-1 autocorrelation
-        # 'partial_autocorrelation': partial_autocorr[1],  # Lag-1 partial autocorrelation
-        'entropy': entropy,
-        'hurst_exponent': hurst_exponent,
-        'energy': energy,
-        'rms': rms,
-        'zero_crossing_rate': zero_crossings,
-        'spectral_centroid': spectral_centroid,
-        'spectral_bandwidth': spectral_bandwidth,
-        'auc': auc,
-        'slope_of_linear_fit': slope_of_linear_fit
     }
     return features
 
-def classify_time_series(num_clusters):
+def scale_features():
     feature_list = []
     for tf in grn.exp_dict:
         for target in grn.exp_dict[tf]:
@@ -107,6 +88,9 @@ def classify_time_series(num_clusters):
     print(scaled_df)
     features_scaled = scaler.fit_transform(scaled_df)
 
+    return feature_df, features_scaled
+
+def elbow_curve(features_scaled):
     # Elbow method to determine the optimal number of clusters
     wcss = []
     max_clusters = 10
@@ -123,7 +107,9 @@ def classify_time_series(num_clusters):
     plt.ylabel('Within-Cluster Sum of Squares (WCSS)')
     plt.show()
 
+def classify_time_series(num_clustered):
     # Apply KMeans clustering
+
     kmeans = KMeans(n_clusters=num_clusters, random_state=2)
     clusters = kmeans.fit_predict(features_scaled)
     feature_df['cluster'] = clusters
