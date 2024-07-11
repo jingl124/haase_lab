@@ -134,7 +134,7 @@ def classify_time_series(num_clusters):
     
     return cluster_df
 
-def plot_clusters(feature_df, scaled=False):
+def plot_clusters(cluster_df, scaled=False):
     """
     Plots time series for each cluster.
 
@@ -145,12 +145,12 @@ def plot_clusters(feature_df, scaled=False):
     # feature_df = classify_time_series(num_clusters)
     # feature_df.to_csv("clusters.csv")
     # os.makedirs(OUTPUT_DIR, exist_ok=True)
-    num_clusters = feature_df['cluster'].max() + 1
+    num_clusters = cluster_df['cluster'].max() + 1
 
     for cluster in range(num_clusters):
-        cluster_df = feature_df[feature_df['cluster'] == cluster]
+        df = cluster_df[cluster_df['cluster'] == cluster]
         plt.figure(figsize=(10, 6))
-        for _, row in cluster_df.head().iterrows():  # Plot first 5 series for brevity
+        for _, row in df.head().iterrows():  # Plot first 5 series for brevity
             tf = row['TF']
             target = row['target']
             time_series = grn.exp_dict[tf][target]
@@ -213,7 +213,7 @@ def main():
     grn.extract_expression_data(df)
     # elbow_curve()
     cluster_df = classify_time_series(18)
-    cluster_df.to_csv("clusters.csv")
+    cluster_df.to_csv("/Users/jingliu/Documents/haase/clusters.csv")
     plot_clusters(cluster_df)
     cluster_heat_maps(df, cluster_df)
     print("finished running")
