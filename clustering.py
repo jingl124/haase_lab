@@ -129,8 +129,10 @@ def classify_time_series(num_clusters):
     kmeans = KMeans(n_clusters=num_clusters, random_state=42)
     clusters = kmeans.fit_predict(features_scaled)
     feature_df['cluster'] = clusters
+    columns = ['TF', 'target', 'cluster']
+    cluster_df = feature_df[columns]
     
-    return feature_df
+    return cluster_df
 
 def plot_clusters(feature_df, scaled=False):
     """
@@ -159,6 +161,7 @@ def plot_clusters(feature_df, scaled=False):
                 plt.plot(timestamps, scale_data(values), marker='o', linestyle='-', label=f'{tf}-{target}')
         plt.title(f'Cluster {cluster}')
         plt.legend()
+        os.makedirs(PLOT_OUTPUT_DIR, exist_ok=True)
         plt.savefig(os.path.join(PLOT_OUTPUT_DIR, f'cluster_{cluster}.png'))
         plt.close()
 
@@ -199,7 +202,7 @@ def cluster_heat_maps(df, cluster_df):
         ax.set_title(f'Cluster {i}')
         ax.set_xlabel('time (min)')
         ax.set_ylabel('')
-    
+    os.makedirs(HEAT_OUTPUT_DIR, exist_ok=True)
     plt.savefig(os.path.join(HEAT_OUTPUT_DIR, f"heatmap_clusters_{timestamp}.png"))
 
 # Main Function
