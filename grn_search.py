@@ -11,6 +11,7 @@ import graphviz
 import matplotlib
 import math
 import datetime
+import grn_finder as grn
 
 def path_search(start=None, end=None, sign=None):
     '''
@@ -54,6 +55,31 @@ def path_search(start=None, end=None, sign=None):
         paths += f"{path}\n"
     print(paths)
 
+def get_out_edges(node_name):
+    '''
+    Given the name of a gene, find all edges pointing from this node.
 
+    Parameters: 
+    node_name (string): name of the node
+
+    Returns:
+    targets (list of strings): target names of all the edges
+    '''
+    node = grn.gene_nodes[node_name]
+    targets = []
+    for edge in node.edges:
+        targets.append(edge.target.gene)
+    return targets
+
+def get_in_edges(node_name):
+    '''
+    Given the name of a gene, find all edges that point to this node.
+
+    Parameters: 
+    node_name (string): name of the node
+
+    Returns:
+    targets (list of strings): target names of all the edges
+    '''
 
 path_search(start='ACE2', end='ACE2')

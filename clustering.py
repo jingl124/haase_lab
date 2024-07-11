@@ -1,5 +1,6 @@
 import os
 import datetime
+import seaborn as sns
 import pandas as pd
 import numpy as np
 import scipy
@@ -7,6 +8,7 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 import grn_finder as grn
+import math
 
 # Global timestamp
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -14,7 +16,8 @@ timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 # Constants
 DATA_DIR = "/Users/jingliu/Documents/haase/IDEA_data"
 DATA_FILE = "idea_tall_expression_data.tsv"
-OUTPUT_DIR = f'cluster_plots/cluster_plots_{timestamp}'
+PLOT_OUTPUT_DIR = f'cluster_plots/cluster_plots_{timestamp}'
+HEAT_OUTPUT_DIR = f'heat_map_clusters/heat_maps_{timestamp}'
 
 # Utility Functions
 def scale_data(data):
@@ -129,7 +132,7 @@ def classify_time_series(num_clusters):
     
     return feature_df
 
-def plot_clusters(num_clusters, scaled=False):
+def plot_clusters(feature_df, scaled=False):
     """
     Plots time series for each cluster.
 
@@ -137,9 +140,10 @@ def plot_clusters(num_clusters, scaled=False):
     num_clusters (int): Number of clusters
     scaled (bool): Whether to scale the data
     """
-    feature_df = classify_time_series(num_clusters)
-    feature_df.to_csv("clusters.csv")
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    # feature_df = classify_time_series(num_clusters)
+    # feature_df.to_csv("clusters.csv")
+    # os.makedirs(OUTPUT_DIR, exist_ok=True)
+    num_clusters = feature_df['cluster'].max() + 1
 
     for cluster in range(num_clusters):
         cluster_df = feature_df[feature_df['cluster'] == cluster]
@@ -155,8 +159,48 @@ def plot_clusters(num_clusters, scaled=False):
                 plt.plot(timestamps, scale_data(values), marker='o', linestyle='-', label=f'{tf}-{target}')
         plt.title(f'Cluster {cluster}')
         plt.legend()
-        plt.savefig(os.path.join(OUTPUT_DIR, f'cluster_{cluster}.png'))
+        plt.savefig(os.path.join(PLOT_OUTPUT_DIR, f'cluster_{cluster}.png'))
         plt.close()
+
+def cluster_heat_maps(df, cluster_df):
+    '''
+    Plot out gene expression heat maps by cluster.
+    '''
+    haase = grn.heat_map_colors()
+
+    # num_cols and num_rows to determine dimensions of plot and subplots
+    num_clusters = cluster_df['cluster'].max() + 1
+    num_cols = 4
+    num_rows = math.ceil(num_clusters / num_cols)
+
+    # create plot
+    fig = plt.figure(figsize = (15,10 + num_rows * 3))
+    fig.subplots_adjust(hspace=0.4, wspace=0.4, top = 0.90)
+    fig.suptitle("Expression Levels by Cluster", fontsize = 15)
+
+    for i in range(num_clusters):
+        temp_df = cluster_df[cluster_df['cluster'] == i]
+        for _, row in temp_df.iterrows():
+            tf = row['TF']
+            target = row['target']           
+            data = df[df['TF'] == tf & df['target'] == target]
+
+            # Create a pivot table for heatmap 
+            heatmap_data = data.pivot(index='GeneName', columns='time', values='log2_cleaned_ratio')
+
+            if combined_heatmap_data.empty:
+                combined_heatmap_data = heatmap_data
+            else:
+                combined_heatmap_data = pd.concat([combined_heatmap_data, heatmap_data])
+
+        # Make subplot
+        ax = plt.subplot(num_rows, num_cols, i + 1)
+        sns.heatmap(combined_heatmap_data, cmap=haase, cbar=True, vmin=-2, vmax=2, ax=ax)
+        ax.set_title(f'Cluster {i}')
+        ax.set_xlabel('time (min)')
+        ax.set_ylabel('')
+    
+    plt.savefig(os.path.join(HEAT_OUTPUT_DIR, f"heatmap_clusters_{timestamp}.png"))
 
 # Main Function
 def main():
@@ -165,7 +209,10 @@ def main():
     df = grn.filter_df(path)
     grn.extract_expression_data(df)
     # elbow_curve()
-    classify_time_series(7)
+    cluster_df = classify_time_series(18)
+    cluster_df.to_csv("clusters.csv")
+    plot_clusters(cluster_df)
+    cluster_heat_maps(df, cluster_df)
     print("finished running")
 
 if __name__ == '__main__':

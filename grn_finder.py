@@ -100,7 +100,8 @@ def filter_df(path, gene_path=None):
     gene_path (string): input file containing TFs and targets
 
     Returns: 
-    df (pandas DataFrame): contains gene expression data of TFs and targets
+    df (pandas DataFrame): contains gene expression data of TFs and targets. 
+        If None, don't filter.
     '''
     # reading data
     df = pd.read_csv(path, sep='\t')
