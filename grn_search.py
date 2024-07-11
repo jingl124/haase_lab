@@ -89,7 +89,7 @@ def get_in_edges(node_name):
         if edge == None:
             continue
         else:
-            nodes.append(edge.target.gene)
+            nodes.append(node.gene)
     return nodes
 
 path_search(start='ACE2', end='ACE2')

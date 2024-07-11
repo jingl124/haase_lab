@@ -183,13 +183,17 @@ def cluster_heat_maps(df, cluster_df):
 
     for i in range(num_clusters):
         temp_df = cluster_df[cluster_df['cluster'] == i]
+        combined_heatmap_data = pd.DataFrame()
         for _, row in temp_df.iterrows():
             tf = row['TF']
             target = row['target']           
-            data = df[df['TF'] == tf & df['target'] == target]
+            data = df[(df['TF'] == tf) & (df['GeneName'] == target)]
+            
+            #idk if this line will work
+            data = data.groupby(['TF', 'GeneName', 'time'], as_index=False).mean()
 
             # Create a pivot table for heatmap 
-            heatmap_data = data.pivot(index='GeneName', columns='time', values='log2_cleaned_ratio')
+            heatmap_data = data.pivot(index=['TF', 'GeneName'], columns='time', values='log2_cleaned_ratio')
 
             if combined_heatmap_data.empty:
                 combined_heatmap_data = heatmap_data
@@ -212,9 +216,13 @@ def main():
     df = grn.filter_df(path)
     grn.extract_expression_data(df)
     # elbow_curve()
-    cluster_df = classify_time_series(18)
-    # cluster_df.to_csv("/Users/jingliu/Documents/haase/clusters.csv")
-    plot_clusters(cluster_df)
+    cluster_file = "/Users/jingliu/Documents/haase/clusters.csv"
+    if os.path.isfile(cluster_file):
+        cluster_df = pd.read_csv(cluster_file)
+    else:
+        cluster_df = classify_time_series(18)
+        cluster_df.to_csv(cluster_file)
+    # plot_clusters(cluster_df, scaled=True)
     cluster_heat_maps(df, cluster_df)
     print("finished running")
 
