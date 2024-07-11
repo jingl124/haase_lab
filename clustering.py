@@ -123,7 +123,7 @@ def classify_time_series(num_clusters):
     DataFrame: DataFrame with cluster labels
     """
     feature_df, features_scaled = scale_features()
-    kmeans = KMeans(n_clusters=num_clusters, random_state=2)
+    kmeans = KMeans(n_clusters=num_clusters, random_state=42)
     clusters = kmeans.fit_predict(features_scaled)
     feature_df['cluster'] = clusters
     
@@ -164,8 +164,8 @@ def main():
     path = os.path.join(DATA_DIR, DATA_FILE)
     df = grn.filter_df(path)
     grn.extract_expression_data(df)
-    elbow_curve()
-    # classify_time_series(7)
+    # elbow_curve()
+    classify_time_series(7)
     print("finished running")
 
 if __name__ == '__main__':
