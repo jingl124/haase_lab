@@ -63,13 +63,13 @@ def get_out_edges(node_name):
     node_name (string): name of the node
 
     Returns:
-    targets (list of strings): target names of all the edges
+    nodes (list of strings): target names of all the edges
     '''
     node = grn.gene_nodes[node_name]
-    targets = []
+    nodes = []
     for edge in node.edges:
-        targets.append(edge.target.gene)
-    return targets
+        nodes.append(edge.target.gene)
+    return nodes
 
 def get_in_edges(node_name):
     '''
@@ -79,7 +79,17 @@ def get_in_edges(node_name):
     node_name (string): name of the node
 
     Returns:
-    targets (list of strings): target names of all the edges
+    nodes (list of strings): target names of all the edges
     '''
+    target = grn.gene_nodes[node_name]
+    nodes = []
+    for gene in grn.gene_nodes.keys():
+        node = grn.gene_nodes[gene]
+        edge = node.get_edge(target)
+        if edge == None:
+            continue
+        else:
+            nodes.append(edge.target.gene)
+    return nodes
 
 path_search(start='ACE2', end='ACE2')

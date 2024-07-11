@@ -213,7 +213,7 @@ def main():
     grn.extract_expression_data(df)
     # elbow_curve()
     cluster_df = classify_time_series(18)
-    cluster_df.to_csv("/Users/jingliu/Documents/haase/clusters.csv")
+    # cluster_df.to_csv("/Users/jingliu/Documents/haase/clusters.csv")
     plot_clusters(cluster_df)
     cluster_heat_maps(df, cluster_df)
     print("finished running")

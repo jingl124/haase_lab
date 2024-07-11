@@ -21,7 +21,7 @@ class GeneNode:
         edge = Edge(target, act, time)
         self.edges.append(edge)
 
-    def get_edge(self, t, a):
+    def get_edge(self, t, a==None):
         '''
         Return the Edge containing a given target with a given type of regulation.
 
@@ -34,7 +34,7 @@ class GeneNode:
         '''
         for edge in self.edges:
             if edge.target == t:
-                if edge.act == a:
+                if a == None or edge.act == a:
                     return edge
                 return None
         return None
