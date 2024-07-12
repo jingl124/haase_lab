@@ -69,6 +69,7 @@ def get_out_edges(node_name):
     nodes = []
     for edge in node.edges:
         nodes.append(edge.target.gene)
+    print(nodes)
     return nodes
 
 def get_in_edges(node_name):
@@ -90,6 +91,6 @@ def get_in_edges(node_name):
             continue
         else:
             nodes.append(node.gene)
+    print(nodes)
     return nodes
 
-path_search(start='ACE2', end='ACE2')

@@ -10,8 +10,11 @@ import graphviz
 import matplotlib
 import math
 import datetime
+import grn_search as search
 
 importlib.reload(structs)
+importlib.reload(search)
+
 
 # global dictionary of GeneNode names (strings) and the actual GeneNodes that already exist
 gene_nodes = {}

@@ -17,7 +17,7 @@ timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 DATA_DIR = "/Users/jingliu/Documents/haase/IDEA_data"
 DATA_FILE = "idea_tall_expression_data.tsv"
 PLOT_OUTPUT_DIR = f'cluster_plots/cluster_plots_{timestamp}'
-HEAT_OUTPUT_DIR = f'heat_map_clusters/heat_maps_{timestamp}'
+HEAT_OUTPUT_DIR = f'heat_map_clusters/'
 
 # Utility Functions
 def scale_data(data):
@@ -182,14 +182,12 @@ def cluster_heat_maps(df, cluster_df):
     fig.suptitle("Expression Levels by Cluster", fontsize = 15)
 
     for i in range(num_clusters):
-        temp_df = cluster_df[cluster_df['cluster'] == i]
+        temp_df = cluster_df[cluster_df['cluster'] == i].head(100)
         combined_heatmap_data = pd.DataFrame()
         for _, row in temp_df.iterrows():
             tf = row['TF']
             target = row['target']           
             data = df[(df['TF'] == tf) & (df['GeneName'] == target)]
-            
-            #idk if this line will work
             data = data.groupby(['TF', 'GeneName', 'time'], as_index=False).mean()
 
             # Create a pivot table for heatmap 
