@@ -188,10 +188,18 @@ def cluster_heat_maps(df, cluster_df):
             tf = row['TF']
             target = row['target']           
             data = df[(df['TF'] == tf) & (df['GeneName'] == target)]
-            data = data.groupby(['TF', 'GeneName', 'time'], as_index=False).mean()
+            print(data)
+            # data = data.groupby(['TF', 'GeneName', 'time'], as_index=False).mean()
+
+            # scale values
+            values = data['log2_cleaned_ratio'].tolist()
+            scaled_values = scale_data(values)
+            data['log2_cleaned_ratio_scaled'] = scaled_values
+            # data['log2_cleaned_ratio_scaled'] = scale_data(data['log2_cleaned_ratio'])
+
 
             # Create a pivot table for heatmap 
-            heatmap_data = data.pivot(index=['TF', 'GeneName'], columns='time', values='log2_cleaned_ratio')
+            heatmap_data = data.pivot(index=['TF', 'GeneName'], columns='time', values='log2_cleaned_ratio_scaled')
 
             if combined_heatmap_data.empty:
                 combined_heatmap_data = heatmap_data
