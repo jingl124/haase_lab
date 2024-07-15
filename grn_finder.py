@@ -10,10 +10,8 @@ import graphviz
 import matplotlib
 import math
 import datetime
-import grn_search as search
 
 importlib.reload(structs)
-importlib.reload(search)
 
 
 # global dictionary of GeneNode names (strings) and the actual GeneNodes that already exist
@@ -722,6 +720,88 @@ def df_to_edges(df):
         edges.append(edge)
     return edges
 
+# search functions
+def path_search(start=None, end=None, sign=None):
+    '''
+    Return strings of paths that satisfy the given arguments.
+
+    Parameters:
+    start (string): 
+    end (string):
+    sign (string): 'act' if activating, 'rep' if repressing. 
+        Returns both activating and repressing edges if sign == None.
+
+    
+    '''
+    # invalid arguments
+    if start == None and end == None:
+        raise ValueError("Needs a start or end node.")
+    
+    # read in .csv file
+    path_df = pd.read_csv("paths.csv")
+    filtered_df = path_df.copy()
+
+    # filtering based on arguments
+    if start is not None:
+        start = start.upper()
+        filtered_df = filtered_df[filtered_df['start'] == start]
+    if end is not None:
+        end = end.upper()
+        filtered_df = filtered_df[filtered_df['end'] == end]
+    if sign is not None:
+        filtered_df = filtered_df[filtered_df['sign'] == sign]
+
+    # no rows left
+    if len(filtered_df.index) == 0:
+        print("No paths that satisfy arguments.")
+        return
+
+    # print out paths
+    paths = ""
+    for _, row in filtered_df.iterrows():
+        path = row['path']
+        paths += f"{path}\n"
+    print(paths)
+
+def get_out_edges(node_name):
+    '''
+    Given the name of a gene, find all edges pointing from this node.
+
+    Parameters: 
+    node_name (string): name of the node
+
+    Returns:
+    nodes (list of tuples): target names of all the edges with signs
+    '''
+    node = gene_nodes[node_name]
+    nodes = []
+    for edge in node.edges:
+        nodes.append((edge.target.gene, edge.act))
+    print(nodes)
+    return nodes
+
+def get_in_edges(node_name):
+    '''
+    Given the name of a gene, find all edges that point to this node.
+
+    Parameters: 
+    node_name (string): name of the node
+
+    Returns:
+    nodes (list of tuples): target names of all the edges with signs
+    '''
+    target = gene_nodes[node_name]
+    nodes = []
+    for gene in gene_nodes.keys():
+        node = gene_nodes[gene]
+        edge = node.get_edge(target)
+        if edge == None:
+            continue
+        else:
+            nodes.append((node.gene, edge.act))
+    print(nodes)
+    return nodes
+
 # main function
 def main():
     path = os.path.join(DATA_DIR, DATA_FILE)
@@ -741,7 +821,32 @@ def main():
     # build_network(df)
     # find_all_paths()
 
-    print(sigmoid_curve_fit('FKH1', 'SWI5'))
+    print(sigmoid_curve_fit('HCM1', 'MBP1'))
+
+    # tf = 'HCM1'
+    # target = 'MBP1'
+    # data = exp_dict[tf][target]
+    # plt.figure(figsize=(10, 6))
+    
+    # timestamps, values = zip(*data)
+    # # params = sigmoid_curve_fit(tf, target)
+    # timestamps = list(timestamps)
+    # values = list(values)
+    # # if params is None:
+    # #     return
+    #     # amp = abs(params[0])
+    #     # color = ''
+    #     # if amp > amp_thresh:
+    #     #     color = 'green'
+    #     # else:
+    #     #     color = 'red'
+    #     #plt.plot(timestamps, values, color=color, marker='o', linestyle='-')
+    # plt.plot(timestamps, values, marker='o', linestyle='-')
+    # plt.savefig(f"time_series_plots/tf_target/{tf}-{target}.png")
+    # # plt.savefig(f"time_series_plots/amp_thresh_{amp_thresh}/{tf}.png")
+    # # plt.savefig(f"time_series_plots/tf/{tf}.png")
+    # plt.close()
+    # # get_in_edges('TOS4')
     
 if __name__ == '__main__':
     main()   
