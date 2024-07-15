@@ -558,7 +558,6 @@ def paths_to_df(graph, path_limit=3):
                         time = np.nan
                     sign = path_sign(p)
                     path_df.loc[len(path_df.index)] = [gene1, gene2, path, graph, sign, time]
-    print(path_df)
     return path_df
 
 def path_time(path):
@@ -738,9 +737,11 @@ def main():
     # # create heat maps
     # create_heat_maps(df)
 
-    # reformat data and build network
-    build_network(df)
-    find_all_paths()
+    # # reformat data and build network
+    # build_network(df)
+    # find_all_paths()
+
+    print(sigmoid_curve_fit('FKH1', 'SWI5'))
     
 if __name__ == '__main__':
     main()   
