@@ -817,14 +817,14 @@ def main():
     # # create heat maps
     # create_heat_maps(df)
 
-    # reformat data and build network
-    build_network(df)
-    find_all_paths()
+    # # reformat data and build network
+    # build_network(df)
+    # find_all_paths()
 
-    # print(sigmoid_curve_fit('HCM1', 'CLB5'))
+    print(sigmoid_curve_fit('STB1', 'CLN1'))
 
-    # tf = 'HCM1'
-    # target = 'MBP1'
+    # tf = 'STB1'
+    # target = 'SWI6'
     # data = exp_dict[tf][target]
     # plt.figure(figsize=(10, 6))
     
@@ -842,11 +842,11 @@ def main():
     #     #     color = 'red'
     #     #plt.plot(timestamps, values, color=color, marker='o', linestyle='-')
     # plt.plot(timestamps, values, marker='o', linestyle='-')
-    # plt.savefig(f"time_series_plots/tf_target/{tf}-{target}.png")
+    # plt.savefig(f"time_series_plots/tf_target/{tf}_{target}.png")
     # # plt.savefig(f"time_series_plots/amp_thresh_{amp_thresh}/{tf}.png")
     # # plt.savefig(f"time_series_plots/tf/{tf}.png")
     # plt.close()
-    # # get_in_edges('TOS4')
+    # # # get_in_edges('TOS4')
     
 if __name__ == '__main__':
     main()   
