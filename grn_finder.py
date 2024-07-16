@@ -821,7 +821,7 @@ def main():
     build_network(df)
     find_all_paths()
 
-    # print(sigmoid_curve_fit('HCM1', 'FKH1'))
+    # print(sigmoid_curve_fit('HCM1', 'CLB5'))
 
     # tf = 'HCM1'
     # target = 'MBP1'
