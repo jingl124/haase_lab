@@ -821,32 +821,32 @@ def main():
     # build_network(df)
     # find_all_paths()
 
-    print(sigmoid_curve_fit('STB1', 'CLN1'))
+    # print(sigmoid_curve_fit('YHP1', 'SWI6'))
 
-    # tf = 'STB1'
-    # target = 'SWI6'
-    # data = exp_dict[tf][target]
-    # plt.figure(figsize=(10, 6))
+    tf = 'YHP1'
+    target = 'MBP1'
+    data = exp_dict[tf][target]
+    plt.figure(figsize=(10, 6))
     
-    # timestamps, values = zip(*data)
-    # # params = sigmoid_curve_fit(tf, target)
-    # timestamps = list(timestamps)
-    # values = list(values)
-    # # if params is None:
-    # #     return
-    #     # amp = abs(params[0])
-    #     # color = ''
-    #     # if amp > amp_thresh:
-    #     #     color = 'green'
-    #     # else:
-    #     #     color = 'red'
-    #     #plt.plot(timestamps, values, color=color, marker='o', linestyle='-')
-    # plt.plot(timestamps, values, marker='o', linestyle='-')
-    # plt.savefig(f"time_series_plots/tf_target/{tf}_{target}.png")
-    # # plt.savefig(f"time_series_plots/amp_thresh_{amp_thresh}/{tf}.png")
-    # # plt.savefig(f"time_series_plots/tf/{tf}.png")
-    # plt.close()
-    # # # get_in_edges('TOS4')
+    timestamps, values = zip(*data)
+    # params = sigmoid_curve_fit(tf, target)
+    timestamps = list(timestamps)
+    values = list(values)
+    # if params is None:
+    #     return
+        # amp = abs(params[0])
+        # color = ''
+        # if amp > amp_thresh:
+        #     color = 'green'
+        # else:
+        #     color = 'red'
+        #plt.plot(timestamps, values, color=color, marker='o', linestyle='-')
+    plt.plot(timestamps, values, marker='o', linestyle='-')
+    plt.savefig(f"time_series_plots/tf_target/{tf}_{target}.png")
+    # plt.savefig(f"time_series_plots/amp_thresh_{amp_thresh}/{tf}.png")
+    # plt.savefig(f"time_series_plots/tf/{tf}.png")
+    plt.close()
+    # # get_in_edges('TOS4')
     
 if __name__ == '__main__':
     main()   
