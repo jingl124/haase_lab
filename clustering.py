@@ -147,6 +147,21 @@ def plot_clusters(cluster_df, scaled=False):
     # os.makedirs(OUTPUT_DIR, exist_ok=True)
     num_clusters = cluster_df['cluster'].max() + 1
 
+    # bounds of axes
+    global_min, global_max = float('inf'), float('-inf')
+    for cluster in range(num_clusters):
+        df = cluster_df[cluster_df['cluster'] == cluster]
+        for _, row in df.head().iterrows():
+            tf = row['TF']
+            target = row['target']
+            time_series = grn.exp_dict[tf][target]
+            _, values = zip(*time_series)
+            if scaled:
+                values = scale_data(values)
+            global_min = min(global_min, min(values))
+            global_max = max(global_max, max(values))
+
+    # plotting
     for cluster in range(num_clusters):
         df = cluster_df[cluster_df['cluster'] == cluster]
         plt.figure(figsize=(10, 6))
@@ -159,6 +174,7 @@ def plot_clusters(cluster_df, scaled=False):
                 plt.plot(timestamps, values, marker='o', linestyle='-', label=f'{tf}-{target}')
             else: 
                 plt.plot(timestamps, scale_data(values), marker='o', linestyle='-', label=f'{tf}-{target}')
+        plt.ylim(global_min, global_max)  # Set consistent y-axis limits
         plt.title(f'Cluster {cluster}')
         plt.legend()
         os.makedirs(PLOT_OUTPUT_DIR, exist_ok=True)
@@ -229,7 +245,7 @@ def main():
         cluster_df = classify_time_series(18)
         cluster_df.to_csv(cluster_file)
     # plot_clusters(cluster_df, scaled=True)
-    cluster_heat_maps(df, cluster_df)
+    plot_clusters(cluster_df)
     print("finished running")
 
 if __name__ == '__main__':
