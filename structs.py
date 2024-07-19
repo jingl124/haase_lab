@@ -27,7 +27,8 @@ class GeneNode:
 
         Parameters: 
         t (GeneNode): target of desired Edge
-        a (boolean): True if Edge is activating, False if Edge is inhibiting
+        a (boolean): True if Edge is activating, False if Edge is inhibiting. 
+            None if type of regulation doesn't matter.
 
         Returns: 
         edge (Edge): Edge containing t and proper regualtion type
@@ -38,6 +39,23 @@ class GeneNode:
                     return edge
                 return None
         return None
+    
+    def remove_edge(self, t, a=None):
+        '''
+        Remove the Edge of a GeneNode given the edge's target.
+
+        Parameters:
+        t (GeneNode): 
+        a (boolean): True if Edge is activating, False if Edge is inhibiting. 
+            None if type of regulation doesn't matter. 
+        '''
+        e = self.get_edge(t, a)
+        if e == None:
+            return
+        for edge in self.edges:
+            if edge.target == t and (a == None or edge.act == a):
+                self.edges.remove(edge)
+                return
 
 class Edge:
     def __init__(self, target, act, time):

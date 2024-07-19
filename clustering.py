@@ -245,7 +245,7 @@ def main():
         cluster_df = classify_time_series(18)
         cluster_df.to_csv(cluster_file)
     # plot_clusters(cluster_df, scaled=True)
-    plot_clusters(cluster_df)
+    plot_clusters(cluster_df, scaled=True)
     print("finished running")
 
 if __name__ == '__main__':
