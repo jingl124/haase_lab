@@ -6,6 +6,10 @@ import scipy
 import matplotlib.pyplot as plt
 import numpy as np
 import grn_finder as grn
+import datetime
+
+# global timestamp
+timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def path_search(start=None, end=None, sign=None):
     '''
@@ -88,26 +92,65 @@ def get_in_edges(node_name):
     print(nodes)
     return nodes
 
-def search_paths(file, start, end):
+def read_path_file(file):
     '''
-    Given a file containing paths generated from grn_finder.py, search for paths with the specified start and end nodes.
+    Given a file containing paths generated from grn_finder.py, return a DataFrame. 
+    '''
+    df = pd.read_csv(file)
+
+    if 'start' not in df.columns:
+        raise ValueError("File does not contain 'start' column; try again.")
+    elif 'end' not in df.columns:
+        raise ValueError("File does not contain 'end' column; try again.")
+    
+    return df
+
+def search_paths(start=None, end=None, df=None):
+    '''
+    Given a pandas DataFrame containing all paths found in a GRN, search for paths with the specified start and end nodes.
 
     Parameters:
-    file (string): file path
+    df (pandas DataFrame): contains all the paths
     start (string): start node
     end (string): end node
 
     Returns:
-    df (pandas DataFrame): DataFrame including all paths satisfying the specified start and end nodes
+    paths_df (pandas DataFrame): DataFrame including all paths satisfying the specified start and end nodes
     '''
-    df = pd.read_csv(file)
+    paths_df = df[(df['start'] == start) & (df['end'] == end)]
+    
+    if paths_df.empty:
+        print("No paths found for the given start and end points.")
+    else:
+        print("Paths found:")
+        print(paths_df)
 
+    return paths_df
 
+def find_ffls(df):
+    '''
+    Given a pandas DataFrame containing all paths found in a GRN, find all FFLs 
+    '''
+    str = ""
+
+    starts = df['start'].unique()
+    ends = df['end'].unique()
+
+    for start in starts:
+        for end in ends:
+            paths = df[(df['start'] == start) & (df['end'] == end)]
+            if paths.empty or len(paths) <= 1:
+                continue
+            str += f"{start}, {end}:\n{paths.to_string(index=False)}\n"
+
+    return str
 
 def main():
-    '''
-    '''
-    grn.main()
+    # grn.main()
+    df = read_path_file("/Users/jingliu/Documents/haase/haase_lab/paths/paths_2024-07-23 14:11:44.csv")
+    ffl = find_ffls(df)
+    ffl_file = open(f"ffls/ffls_{timestamp}.txt", "w")
+    ffl_file.write(ffl)
 
 if __name__ == '__main__':
     main()
