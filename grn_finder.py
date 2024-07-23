@@ -605,7 +605,7 @@ def find_all_paths(path_limit=3):
     print(len(df1.index))
     print(len(df2.index))
     df = pd.concat([df1, df2], axis=0).reset_index(drop=True)
-    df = df.sort_values(by=['graph', 'start', 'end']).reset_index(drop=True)
+    df = df.sort_values(by=['start', 'end', 'graph']).reset_index(drop=True)
     df.to_csv(f"paths/paths_{timestamp}.csv")
 
 def path_to_strings(tf, path):
@@ -817,11 +817,11 @@ def main():
     # # create heat maps
     # create_heat_maps(df)
 
-    # # reformat data and build network
-    # build_network(df)
-    # find_all_paths()
+    # reformat data and build network
+    build_network(df)
+    find_all_paths()
 
-    print(sigmoid_curve_fit('HCM1', 'MBP1'))
+    # print(sigmoid_curve_fit('HCM1', 'MBP1'))
 
     # tf = 'YOX1'
     # target = 'SWI6'

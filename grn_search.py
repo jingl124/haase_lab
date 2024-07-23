@@ -88,6 +88,22 @@ def get_in_edges(node_name):
     print(nodes)
     return nodes
 
+def search_paths(file, start, end):
+    '''
+    Given a file containing paths generated from grn_finder.py, search for paths with the specified start and end nodes.
+
+    Parameters:
+    file (string): file path
+    start (string): start node
+    end (string): end node
+
+    Returns:
+    df (pandas DataFrame): DataFrame including all paths satisfying the specified start and end nodes
+    '''
+    df = pd.read_csv(file)
+
+
+
 def main():
     '''
     '''
