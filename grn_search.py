@@ -5,12 +5,6 @@ import seaborn as sns
 import scipy
 import matplotlib.pyplot as plt
 import numpy as np
-import structs
-import importlib
-import graphviz
-import matplotlib
-import math
-import datetime
 import grn_finder as grn
 
 def path_search(start=None, end=None, sign=None):
@@ -93,4 +87,12 @@ def get_in_edges(node_name):
             nodes.append(node.gene)
     print(nodes)
     return nodes
+
+def main():
+    '''
+    '''
+    grn.main()
+
+if __name__ == '__main__':
+    main()
 
