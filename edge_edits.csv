@@ -39,4 +39,12 @@ STB1,CLN1,grns,act
 STB1,NRM1,grns,act
 STB1,PLM2,grns,act
 STB1,CLB6,grns,act
-
+SWI5,CLB5,grns,act
+SWI6,TOS4,refs,act
+YHP1,SWI6,refs,rep
+YHP1,MBP1,refs,rep
+YHP1,SWI4,refs,rep
+YHP1,YOX1,grns,rep
+YHP1,CDC20,grns,rep
+YOX1,SWI6,refs,rep
+YOX1,MBP1,refs,rep
