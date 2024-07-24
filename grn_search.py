@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import grn_finder as grn
 import datetime
+import sys
+import argparse
 
 # global timestamp
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -92,20 +94,7 @@ def get_in_edges(node_name):
     print(nodes)
     return nodes
 
-def read_path_file(file):
-    '''
-    Given a file containing paths generated from grn_finder.py, return a DataFrame. 
-    '''
-    df = pd.read_csv(file)
-
-    if 'start' not in df.columns:
-        raise ValueError("File does not contain 'start' column; try again.")
-    elif 'end' not in df.columns:
-        raise ValueError("File does not contain 'end' column; try again.")
-    
-    return df
-
-def search_paths(start=None, end=None, df=None):
+def search_paths(file, start=None, end=None):
     '''
     Given a pandas DataFrame containing all paths found in a GRN, search for paths with the specified start and end nodes.
 
@@ -117,6 +106,13 @@ def search_paths(start=None, end=None, df=None):
     Returns:
     paths_df (pandas DataFrame): DataFrame including all paths satisfying the specified start and end nodes
     '''
+    df = pd.read_csv(file)
+
+    if 'start' not in df.columns:
+        raise ValueError("File does not contain 'start' column; try again.")
+    elif 'end' not in df.columns:
+        raise ValueError("File does not contain 'end' column; try again.")
+    
     paths_df = df[(df['start'] == start) & (df['end'] == end)]
     
     if paths_df.empty:
@@ -129,7 +125,13 @@ def search_paths(start=None, end=None, df=None):
 
 def find_ffls(df):
     '''
-    Given a pandas DataFrame containing all paths found in a GRN, find all FFLs 
+    Given a pandas DataFrame containing all paths found in a GRN, find all FFLs and return them in a string. 
+
+    Parameters: 
+    df (pandas DataFrame): DataFrame containing all paths
+
+    Returns:
+    str (string): string to be put into an output text file
     '''
     str = ""
 
@@ -145,12 +147,29 @@ def find_ffls(df):
 
     return str
 
+def sample_function():
+    print("hello world")
+
 def main():
     # grn.main()
-    df = read_path_file("/Users/jingliu/Documents/haase/haase_lab/paths/paths_2024-07-23 14:11:44.csv")
-    ffl = find_ffls(df)
-    ffl_file = open(f"ffls/ffls_{timestamp}.txt", "w")
-    ffl_file.write(ffl)
+
+    parser = argparse.ArgumentParser(description='GRN search utility')
+    parser.add_argument('function', type=str, help='Function name to execute')
+    parser.add_argument('--args', nargs='*', help='Arguments for the function', default=[])
+
+    args = parser.parse_args()
+    function_name = args.function
+    function_args = args.args
+
+    # Check if the function exists in the current module
+    if function_name in globals():
+        func = globals()[function_name]
+        if callable(func):
+            func(*function_args)
+        else:
+            print(f"{function_name} is not a callable function.")
+    else:
+        print(f"Function {function_name} not found.")
 
 if __name__ == '__main__':
     main()
