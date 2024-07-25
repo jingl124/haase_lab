@@ -444,6 +444,8 @@ def find_paths(tf, target, graph, path_limit=3):
     edges = get_edges_info(tf_node.gene, graph)
     for edge in tf_node.edges:
         str_edge = [tf, edge.target.gene]
+        if tf == edge.target.gene:
+            continue
         if str_edge in edges:
             new_paths = find_paths_recursive([[edge]], tf, target, graph, 1, path_limit)
             paths.extend(new_paths)

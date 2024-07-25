@@ -7,53 +7,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import grn_finder as grn
 import datetime
-import sys
 import argparse
 
 # global timestamp
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-def path_search(start=None, end=None, sign=None):
-    '''
-    Return strings of paths that satisfy the given arguments.
-
-    Parameters:
-    start (string): 
-    end (string):
-    sign (string): 'act' if activating, 'rep' if repressing. 
-        Returns both activating and repressing edges if sign == None.
-
-    
-    '''
-    # invalid arguments
-    if start == None and end == None:
-        raise ValueError("Needs a start or end node.")
-    
-    # read in .csv file
-    path_df = pd.read_csv("paths.csv")
-    filtered_df = path_df.copy()
-
-    # filtering based on arguments
-    if start is not None:
-        start = start.upper()
-        filtered_df = filtered_df[filtered_df['start'] == start]
-    if end is not None:
-        end = end.upper()
-        filtered_df = filtered_df[filtered_df['end'] == end]
-    if sign is not None:
-        filtered_df = filtered_df[filtered_df['sign'] == sign]
-
-    # no rows left
-    if len(filtered_df.index) == 0:
-        print("No paths that satisfy arguments.")
-        return
-
-    # print out paths
-    paths = ""
-    for _, row in filtered_df.iterrows():
-        path = row['path']
-        paths += f"{path}\n"
-    print(paths)
 
 def get_out_edges(node_name):
     '''
@@ -113,10 +70,15 @@ def search_paths(file, start=None, end=None):
     elif 'end' not in df.columns:
         raise ValueError("File does not contain 'end' column; try again.")
     
-    paths_df = df[(df['start'] == start) & (df['end'] == end)]
+    paths_df = df.copy()
+    
+    if start != 'None' and start != None:
+        paths_df = paths_df[paths_df['start'] == start]
+    if end != 'None' and end != None:
+        paths_df = paths_df[paths_df['end'] == end]
     
     if paths_df.empty:
-        print("No paths found for the given start and end points.")
+        print("No paths found.")
     else:
         print("Paths found:")
         print(paths_df)
@@ -151,7 +113,7 @@ def sample_function():
     print("hello world")
 
 def main():
-    # grn.main()
+    grn.main()
 
     parser = argparse.ArgumentParser(description='GRN search utility')
     parser.add_argument('function', type=str, help='Function name to execute')
@@ -165,7 +127,27 @@ def main():
     if function_name in globals():
         func = globals()[function_name]
         if callable(func):
-            func(*function_args)
+            # Parse key-value arguments or positional arguments
+            parsed_args = {}
+            positional_args = []
+
+            for arg in function_args:
+                if '=' in arg:
+                    key, value = arg.split('=', 1)
+                    parsed_args[key] = value
+                else:
+                    positional_args.append(arg)
+
+            # Check for None values indicated by empty strings
+            parsed_args = {k: None if v == '' else v for k, v in parsed_args.items()}
+
+            # Call the function with parsed arguments
+            if parsed_args:
+                # If there are keyword arguments, use them
+                func(**parsed_args)
+            else:
+                # Use positional arguments if no keyword arguments are found
+                func(*positional_args)
         else:
             print(f"{function_name} is not a callable function.")
     else:
