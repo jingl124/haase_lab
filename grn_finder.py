@@ -819,11 +819,11 @@ def main():
     # # create heat maps
     # create_heat_maps(df)
 
-    # reformat data and build network
-    build_network(df)
-    find_all_paths()
+    # # reformat data and build network
+    # build_network(df)
+    # find_all_paths(path_limit=4)
 
-    # print(sigmoid_curve_fit('HCM1', 'MBP1'))
+    print(sigmoid_curve_fit('ACE2', 'CLB1'))
 
     # tf = 'YOX1'
     # target = 'SWI6'
