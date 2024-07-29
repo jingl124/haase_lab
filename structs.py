@@ -60,10 +60,23 @@ class GeneNode:
 class Edge:
     def __init__(self, target, act, time):
         '''
-        target (GeneNode): the gene the Edge is pointing to/regulating
+        target (GeneNode or GroupNode): the gene the Edge is pointing to/regulating
         act (boolean): True if Edge is activating, False if Edge is inhibiting
         time (float): the time of activation/inhibition
         '''
         self.target = target
         self.act = act
         self.time = time
+
+class GroupNode:
+    def __init__(self, nodes, type=None):
+        '''
+        nodes (list of GeneNodes or GroupNodes): elements of the ortholog group or complex
+        type (string): "ortholog" or "complex"
+        '''
+        self.nodes = nodes
+        self.type = type
+
+    def get_nodes(self):
+        return self.nodes  
+

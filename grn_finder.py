@@ -722,87 +722,24 @@ def df_to_edges(df):
         edges.append(edge)
     return edges
 
-# search functions
-def path_search(start=None, end=None, sign=None):
+# group nodes
+def group_nodes():
     '''
-    Return strings of paths that satisfy the given arguments.
-
-    Parameters:
-    start (string): 
-    end (string):
-    sign (string): 'act' if activating, 'rep' if repressing. 
-        Returns both activating and repressing edges if sign == None.
-
-    
-    '''
-    # invalid arguments
-    if start == None and end == None:
-        raise ValueError("Needs a start or end node.")
-    
-    # read in .csv file
-    path_df = pd.read_csv("paths.csv")
-    filtered_df = path_df.copy()
-
-    # filtering based on arguments
-    if start is not None:
-        start = start.upper()
-        filtered_df = filtered_df[filtered_df['start'] == start]
-    if end is not None:
-        end = end.upper()
-        filtered_df = filtered_df[filtered_df['end'] == end]
-    if sign is not None:
-        filtered_df = filtered_df[filtered_df['sign'] == sign]
-
-    # no rows left
-    if len(filtered_df.index) == 0:
-        print("No paths that satisfy arguments.")
-        return
-
-    # print out paths
-    paths = ""
-    for _, row in filtered_df.iterrows():
-        path = row['path']
-        paths += f"{path}\n"
-    print(paths)
-
-def get_out_edges(node_name):
-    '''
-    Given the name of a gene, find all edges pointing from this node.
-
-    Parameters: 
-    node_name (string): name of the node
-
     Returns:
-    nodes (list of tuples): target names of all the edges with signs
-    '''
-    node = gene_nodes[node_name]
-    nodes = []
-    for edge in node.edges:
-        nodes.append((edge.target.gene, edge.act))
-    print(nodes)
-    return nodes
+    orthologs (list of list of GeneNodes):
+    complexes (list of list of GeneNodes):
 
-def get_in_edges(node_name):
     '''
-    Given the name of a gene, find all edges that point to this node.
+    df = pd.read_csv("ref_groups.csv")
 
-    Parameters: 
-    node_name (string): name of the node
+    orthologs = []
+    complexes = []
+    for _, row in df.iterrows():
+        group = row['group']
+        type = row['type']
 
-    Returns:
-    nodes (list of tuples): target names of all the edges with signs
-    '''
-    target = gene_nodes[node_name]
-    nodes = []
-    for gene in gene_nodes.keys():
-        node = gene_nodes[gene]
-        edge = node.get_edge(target)
-        if edge == None:
-            continue
-        else:
-            nodes.append((node.gene, edge.act))
-    print(nodes)
-    return nodes
+
+
 
 # main function
 def main():
