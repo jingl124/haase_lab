@@ -10,6 +10,7 @@ import graphviz
 import matplotlib
 import math
 import datetime
+import ast
 
 importlib.reload(structs)
 
@@ -723,11 +724,11 @@ def df_to_edges(df):
     return edges
 
 # group nodes
-def group_nodes():
+def read_group_nodes():
     '''
     Returns:
-    orthologs (list of list of GeneNodes):
-    complexes (list of list of GeneNodes):
+    orthologs (list of GroupNodes):
+    complexes (list of GroupNodes):
 
     '''
     df = pd.read_csv("ref_groups.csv")
@@ -737,7 +738,18 @@ def group_nodes():
     for _, row in df.iterrows():
         group = row['group']
         type = row['type']
-
+        nodes_str = group.apply(ast.literal_eval)
+        nodes = []
+        for str in nodes_str:
+            nodes.append(gene_nodes[str])
+        node = structs.GroupNode(nodes, type)
+        if type == 'ortholog':
+            orthologs.append(node)
+        elif type == 'complex':
+            complexes.append(node)
+        gene_nodes.append(node)
+    
+    return orthologs, complexes
 
 
 
@@ -760,7 +772,9 @@ def main():
     # build_network(df)
     # find_all_paths(path_limit=4)
 
-    print(sigmoid_curve_fit('ACE2', 'CLB1'))
+    # print(sigmoid_curve_fit('ACE2', 'CLB1'))
+
+    group_nodes()
 
     # tf = 'YOX1'
     # target = 'SWI6'
