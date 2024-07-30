@@ -1,10 +1,10 @@
 class GeneNode:
-    def __init__(self, g, e=None):
+    def __init__(self, n, e=None):
         '''
         gene (string): name of gene
         edges (list): list of Edges that this gene regulates
         '''
-        self.gene = g
+        self.name = n
         self.edges = e if e is not None else []
     
     def add_edge(self, target, act, time=None):
@@ -12,7 +12,7 @@ class GeneNode:
         Add edge if it doesn't already exist.
 
         Parameters:
-        target (GeneNode): target of Edge
+        target (GeneNode or GroupNode): target of Edge
         act (boolean): True if Edge is activating, False if Edge is inhibiting
         time (float): time of activation/inhibition, None if not applicable
         '''
@@ -68,15 +68,20 @@ class Edge:
         self.act = act
         self.time = time
 
-class GroupNode:
-    def __init__(self, nodes, type=None):
+class GroupNode(GeneNode):
+    def __init__(self, nodes, type, edges=None):
         '''
         nodes (list of GeneNodes or GroupNodes): elements of the ortholog group or complex
         type (string): "ortholog" or "complex"
         '''
+        name = ','.join([node.name for node in nodes])
+        super().__init__(name, edges if edges is not None else [])
         self.nodes = nodes
         self.type = type
 
     def get_nodes(self):
         return self.nodes  
+
+    
+
 

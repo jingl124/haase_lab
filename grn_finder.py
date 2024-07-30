@@ -340,7 +340,7 @@ def visualize_gene_network():
     
     # Add nodes
     for gene in gene_nodes:
-        dot.node(gene_nodes[gene].gene, shape='box')
+        dot.node(gene_nodes[gene].name, shape='box')
     
     # Add edges
     both, refs, grns = network_edges(dot)
@@ -406,7 +406,7 @@ def network_edges(dot):
                 color = '#b30000'
             else:
                 color = 'black'
-            dot.edge(gene, edge.target.gene, color=color, arrowhead=arrowhead)
+            dot.edge(gene, edge.target.name, color=color, arrowhead=arrowhead)
     return both, refs, grns
 
 def build_network(df):
@@ -442,10 +442,10 @@ def find_paths(tf, target, graph, path_limit=3):
     '''
     tf_node = gene_nodes[tf]
     paths = []
-    edges = get_edges_info(tf_node.gene, graph)
+    edges = get_edges_info(tf_node.name, graph)
     for edge in tf_node.edges:
-        str_edge = [tf, edge.target.gene]
-        if tf == edge.target.gene:
+        str_edge = [tf, edge.target.name]
+        if tf == edge.target.name:
             continue
         if str_edge in edges:
             new_paths = find_paths_recursive([[edge]], tf, target, graph, 1, path_limit)
@@ -475,7 +475,7 @@ def find_paths_recursive(paths, tf, target, graph, path_length, path_limit):
         final_paths = []
         for path in paths:
             last_edge = path[len(path)-1]
-            last_node = last_edge.target.gene
+            last_node = last_edge.target.name
             if last_node == target:
                 final_paths.append(path)
         return final_paths
@@ -485,16 +485,16 @@ def find_paths_recursive(paths, tf, target, graph, path_length, path_limit):
     for path in paths:
         last_edge = path[len(path)-1]
         last_node = last_edge.target # GeneNode
-        last_node_name = last_node.gene
+        last_node_name = last_node.name
         if last_node_name == target:
             new_paths.append(path)
         elif len(last_node.edges) == 0:
             continue
         else:
-            reg = last_node.gene
+            reg = last_node.name
             edges = get_edges_info(reg, graph)
             for edge in last_node.edges:
-                tar = edge.target.gene # string
+                tar = edge.target.name # string
                 node_names = path_to_strings(tf, path)
                 if tar in node_names:
                     break
@@ -627,7 +627,7 @@ def path_to_strings(tf, path):
         strings = [tf]
     for edge in path:
         target = edge.target
-        node = target.gene
+        node = target.name
         strings.append(node)
     return strings
 
@@ -751,7 +751,13 @@ def read_group_nodes():
     
     return orthologs, complexes
 
-
+def compile_ortholog(group):
+    '''
+    group (GroupNode): ortholog to be populated
+    '''
+    if not isinstance(group, structs.GroupNode) or group.type != 'ortholog':
+        raise ValueError("Invalid input")
+    
 
 # main function
 def main():
