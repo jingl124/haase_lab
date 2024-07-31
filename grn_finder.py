@@ -11,6 +11,7 @@ import matplotlib
 import math
 import datetime
 import ast
+import grn_search as search
 
 importlib.reload(structs)
 
@@ -751,13 +752,40 @@ def read_group_nodes():
     
     return orthologs, complexes
 
-def compile_ortholog(group):
+def out_ortholog(group):
     '''
+    For a given group of orthologs, compile all the out edges based on the nodes in the group and their targets.
+
     group (GroupNode): ortholog to be populated
     '''
     if not isinstance(group, structs.GroupNode) or group.type != 'ortholog':
         raise ValueError("Invalid input")
-    
+    # go through each node in group
+    for node in group.nodes:
+        # go through each edge in each node
+        for edge in node.edges:
+            if group.get_edge(edge.target, edge.act) == None: # if a target including the edge isn't already in group node
+                group.add_edge(structs.Edge(edge.target, edge.act)) # add edge to group
+    return group
+
+def out_orthologs(orthologs):
+    for group in orthologs:
+        out_ortholog(group)
+
+def in_ortholog(group):
+    '''
+    For a given group of orthologs, compile all the in edges based on the nodes in the group.
+    '''
+    for node in group.nodes:
+        starts = search.get_in_edges(node.name)
+        for s in starts: # s is tuple (target.name, act)
+            start = gene_nodes[s[0]]
+            if start.get_edge(group, s[1]) == None:
+                
+
+
+
+
 
 # main function
 def main():
@@ -779,8 +807,6 @@ def main():
     # find_all_paths(path_limit=4)
 
     # print(sigmoid_curve_fit('ACE2', 'CLB1'))
-
-    group_nodes()
 
     # tf = 'YOX1'
     # target = 'SWI6'

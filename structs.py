@@ -58,7 +58,7 @@ class GeneNode:
                 return
 
 class Edge:
-    def __init__(self, target, act, time):
+    def __init__(self, target, act, time=None):
         '''
         target (GeneNode or GroupNode): the gene the Edge is pointing to/regulating
         act (boolean): True if Edge is activating, False if Edge is inhibiting

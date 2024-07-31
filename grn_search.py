@@ -47,7 +47,7 @@ def get_in_edges(node_name):
         if edge == None:
             continue
         else:
-            nodes.append(node.gene)
+            nodes.append((node.gene, edge.act))
     print(nodes)
     return nodes
 
