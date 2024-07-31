@@ -20,6 +20,7 @@ class GeneNode:
             return
         edge = Edge(target, act, time)
         self.edges.append(edge)
+        return edge
 
     def get_edge(self, t, a=None):
         '''

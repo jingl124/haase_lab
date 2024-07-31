@@ -739,7 +739,7 @@ def read_group_nodes():
     for _, row in df.iterrows():
         group = row['group']
         type = row['type']
-        nodes_str = group.apply(ast.literal_eval)
+        nodes_str = group[1:len(group)-1].split(",")
         nodes = []
         for str in nodes_str:
             nodes.append(gene_nodes[str])
@@ -748,7 +748,7 @@ def read_group_nodes():
             orthologs.append(node)
         elif type == 'complex':
             complexes.append(node)
-        gene_nodes.append(node)
+        gene_nodes[node.name] = node
     
     return orthologs, complexes
 
@@ -765,25 +765,38 @@ def out_ortholog(group):
         # go through each edge in each node
         for edge in node.edges:
             if group.get_edge(edge.target, edge.act) == None: # if a target including the edge isn't already in group node
-                group.add_edge(structs.Edge(edge.target, edge.act)) # add edge to group
-    return group
+                group.add_edge(edge.target, edge.act) # add edge to group
+    return group.edges
 
 def out_orthologs(orthologs):
+    outs_df = pd.DataFrame(columns=["start", "end", "act"])
     for group in orthologs:
-        out_ortholog(group)
+        edges = out_ortholog(group)
+        for edge in edges:
+            outs_df.loc[-1] = [group.name, edge.target.name, edge.act]
+    return outs_df
 
 def in_ortholog(group):
     '''
     For a given group of orthologs, compile all the in edges based on the nodes in the group.
     '''
+    list = []
     for node in group.nodes:
         starts = search.get_in_edges(node.name)
         for s in starts: # s is tuple (target.name, act)
             start = gene_nodes[s[0]]
             if start.get_edge(group, s[1]) == None:
-                
+                start.add_edge(group, s[1])
+                list.append((start, s[1])) # starting node and activation
+    return list
 
-
+def in_orthologs(orthologs):
+    ins_df = pd.DataFrame(columns=["start", "end", "act"])
+    for group in orthologs:
+        edges = in_ortholog(group)
+        for edge in edges:
+            ins_df.loc[-1] = [edge[0], group.name, edge[1]]
+    return ins_df
 
 
 
@@ -803,10 +816,16 @@ def main():
     # create_heat_maps(df)
 
     # # reformat data and build network
-    # build_network(df)
+    build_network(df)
     # find_all_paths(path_limit=4)
 
     # print(sigmoid_curve_fit('ACE2', 'CLB1'))
+    orthologs, complexes = read_group_nodes()
+    outs = out_orthologs(orthologs)
+    ins = in_orthologs(orthologs)
+    ortho_edges = pd.concat([outs, ins], ignore_index=True)
+    ortho_edges.to_csv("ortho_edges.csv")
+
 
     # tf = 'YOX1'
     # target = 'SWI6'
