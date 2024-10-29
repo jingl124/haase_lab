@@ -799,6 +799,34 @@ def in_orthologs(orthologs):
     return ins_df
 
 
+# Group node creation and interactions
+def create_group_nodes(orthologs, complexes):
+    """
+    Creates group nodes (orthologs and complexes) and adds edges between them based on the specified criteria.
+
+    Args:
+        orthologs (list): List of ortholog group nodes.
+        complexes (list): List of complex group nodes.
+
+    Returns:
+        None
+    """
+
+    for group in orthologs:
+        for node in group.nodes:
+            for edge in node.edges:
+                if group.get_edge(edge.target, edge.act) is None:
+                    group.add_edge(edge.target, edge.act)
+
+    for group in complexes:
+        for node in group.nodes:
+            for edge in node.edges:
+                if group.get_edge(edge.target, edge.act) is None:
+                    group.add_edge(edge.target, edge.act)
+
+    # Update gene_nodes with group nodes
+    for group in orthologs + complexes:
+        gene_nodes[group.name] = group
 
 # main function
 def main():
@@ -821,10 +849,11 @@ def main():
 
     # print(sigmoid_curve_fit('ACE2', 'CLB1'))
     orthologs, complexes = read_group_nodes()
-    outs = out_orthologs(orthologs)
-    ins = in_orthologs(orthologs)
-    ortho_edges = pd.concat([outs, ins], ignore_index=True)
-    ortho_edges.to_csv("ortho_edges.csv")
+    create_group_nodes(orthologs, complexes)
+    # outs = out_orthologs(orthologs)
+    # ins = in_orthologs(orthologs)
+    # ortho_edges = pd.concat([outs, ins], ignore_index=True)
+    # ortho_edges.to_csv("ortho_edges.csv")
 
 
     # tf = 'YOX1'
