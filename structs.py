@@ -75,13 +75,16 @@ class GroupNode(GeneNode):
         nodes (list of GeneNodes or GroupNodes): elements of the ortholog group or complex
         type (string): "ortholog" or "complex"
         '''
-        name = ','.join([node.name for node in nodes])
+        name = f"[{','.join([node.name for node in nodes])}]"
         super().__init__(name, edges if edges is not None else [])
         self.nodes = nodes
         self.type = type
 
     def get_nodes(self):
         return self.nodes  
+    
+    def print_group_node(self):
+        print(f"{self.name}\t{self.type}")
 
     
 

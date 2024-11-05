@@ -424,7 +424,7 @@ def build_network(df):
         build_tree(tf, edges_df) 
     edges_df.to_csv(f"grn_edges/grn_edges_{timestamp}.csv", index=False)
 
-    visualize_gene_network()
+    # visualize_gene_network()
 
 # find paths
 def find_paths(tf, target, graph, path_limit=3):
@@ -739,12 +739,12 @@ def read_group_nodes():
     for _, row in df.iterrows():
         group = row['group']
         type = row['type']
-        nodes_str = group[1:len(group)-1].split(",")
+        nodes_str = group[1:len(group)-1].split(";")
         nodes = []
         for str in nodes_str:
             nodes.append(gene_nodes[str])
         node = structs.GroupNode(nodes, type)
-        if type == 'ortholog':
+        if type == 'orthologs':
             orthologs.append(node)
         elif type == 'complex':
             complexes.append(node)
@@ -790,13 +790,31 @@ def in_ortholog(group):
                 list.append((start, s[1])) # starting node and activation
     return list
 
-def in_orthologs(orthologs):
+def in_groups(groups, type):
     ins_df = pd.DataFrame(columns=["start", "end", "act"])
-    for group in orthologs:
-        edges = in_ortholog(group)
+    for group in groups:
+        if type == 'orthologs':
+            edges = in_ortholog(group)
+        else:
+            edges = in_complex(group)
         for edge in edges:
             ins_df.loc[-1] = [edge[0], group.name, edge[1]]
     return ins_df
+
+def in_complex(group):
+    starts = []
+    for node in group.nodes:
+        start = search.get_in_edges(node.name)
+        starts.append(start)
+
+    if starts:  # Ensure there is at least one list to intersect
+        intersection = set(starts[0])  # Start with the first list
+        for lst in starts[1:]:
+            intersection &= set(lst)  # Intersect with each subsequent list
+        intersection = list(intersection)  # Convert back to list (optional)
+    else:
+        intersection = []  # If starts is empty
+    return intersection
 
 
 # Group node creation and interactions
@@ -828,6 +846,14 @@ def create_group_nodes(orthologs, complexes):
     for group in orthologs + complexes:
         gene_nodes[group.name] = group
 
+def group_compiler():
+    orthologs, complexes = read_group_nodes()
+    create_group_nodes(orthologs, complexes)
+    for com in complexes:
+        com.print_group_node()
+    for orth in orthologs:
+        orth.print_group_node()
+
 # main function
 def main():
     path = os.path.join(DATA_DIR, DATA_FILE)
@@ -848,8 +874,10 @@ def main():
     # find_all_paths(path_limit=4)
 
     # print(sigmoid_curve_fit('ACE2', 'CLB1'))
-    orthologs, complexes = read_group_nodes()
-    create_group_nodes(orthologs, complexes)
+    # orthologs, complexes = read_group_nodes()
+    # create_group_nodes(orthologs, complexes)
+    group_compiler()
+
     # outs = out_orthologs(orthologs)
     # ins = in_orthologs(orthologs)
     # ortho_edges = pd.concat([outs, ins], ignore_index=True)
