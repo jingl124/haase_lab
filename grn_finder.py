@@ -360,6 +360,38 @@ def visualize_gene_network():
     # Render the graph
     dot.render(f'grns/gene_network_{timestamp}', view=True)
 
+def visualize_group_nodes():
+    # Create directed graph
+    dot = graphviz.Digraph(comment='Gene Regulatory Network')
+
+    # Define colors for different types of GroupNodes
+    color_map = {
+        "ortholog": "lightblue",
+        "complex": "lightcoral"
+    }
+
+    # Add nodes for each GroupNode with type-based color
+    for group in gene_nodes.values():
+        if isinstance(group, structs.GroupNode):
+            # Select color based on GroupNode type
+            color = color_map.get(group.type, "lightgray")  # Default to light gray if type not recognized
+            dot.node(group.name, shape='box', style='filled', color=color)
+            # Add edges directly by examining each GroupNode's edges
+            for edge in group.edges:
+                # Determine edge style based on activation or inhibition
+                if edge.act:
+                    arrowhead = 'normal'
+                else:
+                    arrowhead = 'tee'
+                # Add edge from source GroupNode to target
+                dot.edge(group.name, edge.target.name, arrowhead=arrowhead)
+
+    # Render the graph to a PDF file
+    output_path = f'grns/group_network_{timestamp}'
+    dot.render(output_path, view=True)
+
+    print(f"Graph rendered and saved as {output_path}.pdf")
+
 def create_legend(dot):
     '''
     Create a legend on a given Digraph in graphviz.
@@ -734,8 +766,7 @@ def read_group_nodes():
     '''
     df = pd.read_csv("ref_groups.csv")
 
-    orthologs = []
-    complexes = []
+    groups = []
     for _, row in df.iterrows():
         group = row['group']
         type = row['type']
@@ -744,115 +775,52 @@ def read_group_nodes():
         for str in nodes_str:
             nodes.append(gene_nodes[str])
         node = structs.GroupNode(nodes, type)
-        if type == 'orthologs':
-            orthologs.append(node)
-        elif type == 'complex':
-            complexes.append(node)
+        groups.append(node)
         gene_nodes[node.name] = node
     
-    return orthologs, complexes
+    return groups
 
-def out_ortholog(group):
+def out_group(group):
     '''
     For a given group of orthologs, compile all the out edges based on the nodes in the group and their targets.
 
     group (GroupNode): ortholog to be populated
     '''
-    if not isinstance(group, structs.GroupNode) or group.type != 'ortholog':
+    if not isinstance(group, structs.GroupNode):
         raise ValueError("Invalid input")
     # go through each node in group
     for node in group.nodes:
         # go through each edge in each node
         for edge in node.edges:
-            if group.get_edge(edge.target, edge.act) == None: # if a target including the edge isn't already in group node
-                group.add_edge(edge.target, edge.act) # add edge to group
+            target_groups = find_groups(edge.target)
+            for tg in target_groups:
+                if group.get_edge(tg, edge.act) == None: # if a target including the edge isn't already in group node
+                    group.add_edge(tg, edge.act) # add edge to group
     return group.edges
 
-def out_orthologs(orthologs):
-    outs_df = pd.DataFrame(columns=["start", "end", "act"])
-    for group in orthologs:
-        edges = out_ortholog(group)
-        for edge in edges:
-            outs_df.loc[-1] = [group.name, edge.target.name, edge.act]
-    return outs_df
-
-def in_ortholog(group):
+def find_groups(node):
     '''
-    For a given group of orthologs, compile all the in edges based on the nodes in the group.
+    For a given node (GeneNode or GroupNode), return list of GroupNodes that contain it. 
+    If node is a GroupNode, it won't return itself.
     '''
+    # 
     list = []
-    for node in group.nodes:
-        starts = search.get_in_edges(node.name)
-        for s in starts: # s is tuple (target.name, act)
-            start = gene_nodes[s[0]]
-            if start.get_edge(group, s[1]) == None:
-                start.add_edge(group, s[1])
-                list.append((start, s[1])) # starting node and activation
+    for gn in gene_nodes.values():
+        if isinstance(gn, structs.GroupNode):
+            for n in gn.nodes:
+                if n == node:
+                    list.append(gn)
     return list
 
-def in_groups(groups, type):
-    ins_df = pd.DataFrame(columns=["start", "end", "act"])
+
+def out_groups(groups):
     for group in groups:
-        if type == 'orthologs':
-            edges = in_ortholog(group)
-        else:
-            edges = in_complex(group)
-        for edge in edges:
-            ins_df.loc[-1] = [edge[0], group.name, edge[1]]
-    return ins_df
-
-def in_complex(group):
-    starts = []
-    for node in group.nodes:
-        start = search.get_in_edges(node.name)
-        starts.append(start)
-
-    if starts:  # Ensure there is at least one list to intersect
-        intersection = set(starts[0])  # Start with the first list
-        for lst in starts[1:]:
-            intersection &= set(lst)  # Intersect with each subsequent list
-        intersection = list(intersection)  # Convert back to list (optional)
-    else:
-        intersection = []  # If starts is empty
-    return intersection
-
-
-# Group node creation and interactions
-def create_group_nodes(orthologs, complexes):
-    """
-    Creates group nodes (orthologs and complexes) and adds edges between them based on the specified criteria.
-
-    Args:
-        orthologs (list): List of ortholog group nodes.
-        complexes (list): List of complex group nodes.
-
-    Returns:
-        None
-    """
-
-    for group in orthologs:
-        for node in group.nodes:
-            for edge in node.edges:
-                if group.get_edge(edge.target, edge.act) is None:
-                    group.add_edge(edge.target, edge.act)
-
-    for group in complexes:
-        for node in group.nodes:
-            for edge in node.edges:
-                if group.get_edge(edge.target, edge.act) is None:
-                    group.add_edge(edge.target, edge.act)
-
-    # Update gene_nodes with group nodes
-    for group in orthologs + complexes:
-        gene_nodes[group.name] = group
+        out_group(group)
 
 def group_compiler():
-    orthologs, complexes = read_group_nodes()
-    create_group_nodes(orthologs, complexes)
-    for com in complexes:
-        com.print_group_node()
-    for orth in orthologs:
-        orth.print_group_node()
+    groups = read_group_nodes()
+    out_groups(groups)
+    visualize_group_nodes()
 
 # main function
 def main():

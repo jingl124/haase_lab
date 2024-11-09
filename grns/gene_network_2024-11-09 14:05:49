@@ -1,0 +1,15 @@
+// Gene Regulatory Network
+digraph {
+	subgraph cluster_legend {
+		fontsize=20 label=Legend labelloc=t
+		both_legend [label="In both graphs" shape=plaintext]
+		refs_legend [label="Only found in reference graph" shape=plaintext]
+		grns_legend [label="Only found in algorithmic graph" shape=plaintext]
+		legend_space1 [label="" shape=plaintext width=0.1]
+		legend_space2 [label="" shape=plaintext width=0.1]
+		legend_space3 [label="" shape=plaintext width=0.1]
+		both_legend -> legend_space1 [arrowhead=none color="#008000"]
+		refs_legend -> legend_space2 [arrowhead=none color="#0059b3"]
+		grns_legend -> legend_space3 [arrowhead=none color="#b30000"]
+	}
+}
