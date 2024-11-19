@@ -786,6 +786,7 @@ def out_group(group):
 
     group (GroupNode): ortholog to be populated
     '''
+    group_edges = pd.DataFrame(columns=["reg", "target", "type"])
     if not isinstance(group, structs.GroupNode):
         raise ValueError("Invalid input")
     # go through each node in group
@@ -794,9 +795,13 @@ def out_group(group):
         for edge in node.edges:
             target_groups = find_groups(edge.target)
             for tg in target_groups:
+                if group == tg or group.name == tg.name:
+                    break
                 if group.get_edge(tg, edge.act) == None: # if a target including the edge isn't already in group node
                     group.add_edge(tg, edge.act) # add edge to group
-    return group.edges
+                    group_edges.loc[len(group_edges.index)] = [group.name, tg.name, edge.act]
+                    print([group.name, tg.name, edge.act])
+    return group_edges
 
 def find_groups(node):
     '''
@@ -810,12 +815,15 @@ def find_groups(node):
             for n in gn.nodes:
                 if n == node:
                     list.append(gn)
-    return list
+    return list 
 
 
 def out_groups(groups):
+    edges = pd.DataFrame(columns=["reg", "target", "act"])
     for group in groups:
-        out_group(group)
+        group_edges = out_group(group)  # Assuming out_group returns a DataFrame
+        edges = pd.concat([edges, group_edges], ignore_index=True)  # Use pd.concat for better performance
+    edges.to_csv(f"grn_edges/group_edges_{timestamp}.csv")
 
 def group_compiler():
     groups = read_group_nodes()

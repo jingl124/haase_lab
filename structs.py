@@ -35,10 +35,9 @@ class GeneNode:
         edge (Edge): Edge containing t and proper regualtion type
         '''
         for edge in self.edges:
-            if edge.target == t:
+            if edge.target == t or edge.target.name == t.name:
                 if a == None or edge.act == a:
                     return edge
-                return None
         return None
     
     def remove_edge(self, t, a=None):
