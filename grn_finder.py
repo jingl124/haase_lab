@@ -320,6 +320,8 @@ def build_tree(tf, edges_df):
 
     # establish edges  
     for gene in exp_dict[tf].keys(): # target
+        if tf == gene:
+            continue
         time, sign = get_sig_info(tf, gene)
         if time is not None and time > 0 and time < t_thresh:
             if gene not in gene_nodes:
@@ -787,6 +789,7 @@ def out_group(group):
     group (GroupNode): ortholog to be populated
     '''
     group_edges = pd.DataFrame(columns=["reg", "target", "type"])
+    origins = pd.DataFrame(columns=["group1", "group2", "tf", "target", "sign"]) # how each group edge originated
     if not isinstance(group, structs.GroupNode):
         raise ValueError("Invalid input")
     # go through each node in group
@@ -795,13 +798,11 @@ def out_group(group):
         for edge in node.edges:
             target_groups = find_groups(edge.target)
             for tg in target_groups:
-                if group == tg or group.name == tg.name:
-                    break
-                if group.get_edge(tg, edge.act) == None: # if a target including the edge isn't already in group node
+                origins.loc[len(origins.index)] = [group.name, tg.name, node.name, edge.target.name, edge.act] # each edge can have multiple
+                if group.get_edge(tg, edge.act) == None: # if a target including the edge isn't already in group node, add
                     group.add_edge(tg, edge.act) # add edge to group
                     group_edges.loc[len(group_edges.index)] = [group.name, tg.name, edge.act]
-                    print([group.name, tg.name, edge.act])
-    return group_edges
+    return group_edges, origins
 
 def find_groups(node):
     '''
@@ -820,10 +821,13 @@ def find_groups(node):
 
 def out_groups(groups):
     edges = pd.DataFrame(columns=["reg", "target", "act"])
+    origins = pd.DataFrame(columns=["group1", "group2", "tf", "target", "sign"])
     for group in groups:
-        group_edges = out_group(group)  # Assuming out_group returns a DataFrame
+        group_edges, origin = out_group(group)  # Assuming out_group returns a DataFrame
         edges = pd.concat([edges, group_edges], ignore_index=True)  # Use pd.concat for better performance
+        origins = pd.concat([origins, origin], ignore_index=True)
     edges.to_csv(f"grn_edges/group_edges_{timestamp}.csv")
+    origins.to_csv(f"group_edge_origins/group_edge_origins_{timestamp}.csv")
 
 def group_compiler():
     groups = read_group_nodes()
@@ -839,6 +843,7 @@ def main():
 
     extract_expression_data(df)
 
+    print(df[df["TF"] == "SWI4"])
     thresh_df = pd.read_csv(gene_path)
     thresh_df = thresh_df.columns.difference(['type'])
 
