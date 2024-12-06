@@ -12,6 +12,7 @@ import math
 import datetime
 import ast
 import grn_search as search
+from tabulate import tabulate
 
 importlib.reload(structs)
 
@@ -829,10 +830,46 @@ def out_groups(groups):
     edges.to_csv(f"grn_edges/group_edges_{timestamp}.csv")
     origins.to_csv(f"group_edge_origins/group_edge_origins_{timestamp}.csv")
 
+def search_edge_origins():
+    search = input("Search group edge origins [y/n]? ")
+
+    if search == "y" or search == "Y":
+        group1 = input("Enter the start group of the edge (e.g. [SWI4,SWI6]): ")
+        group2 = input("Enter the end group of the edge (e.g. [SWI4,SWI6]): ")
+        sign = input('''Enter the sign of the edge (type "act" for activating, 
+                     "rep" for repressing, enter any key for either): ''')
+
+        df = pd.read_csv(f"group_edge_origins/group_edge_origins_{timestamp}.csv")
+        
+        # Search for the row where group1 and group2 match the input
+        result = df[(df['group1'] == group1) & (df['group2'] == group2)]
+        if sign == "act" or sign == "rep":
+            result = df[df["sign"] == sign]
+        
+        # Check if any results were found and return them
+        if not result.empty:
+            if 'Unnamed: 0' in result.columns:
+                result = result.drop(columns=['Unnamed: 0'])
+            result["sign"] = result["sign"].replace({True: "act", False: "rep"})
+            print("\nFound matching data:")
+            print(tabulate(result, headers='keys', tablefmt='pretty', showindex=False))
+        else:
+            print(f"No results found for group1={group1} and group2={group2}.")
+
+        search_edge_origins()
+
+    elif search == 'n' or search == 'N':
+        return
+
+    else:
+        print("Invalid input.")
+        search_edge_origins()
+
 def group_compiler():
     groups = read_group_nodes()
     out_groups(groups)
     visualize_group_nodes()
+    search_edge_origins()
 
 # main function
 def main():
@@ -843,39 +880,12 @@ def main():
 
     extract_expression_data(df)
 
-    print(df[df["TF"] == "SWI4"])
     thresh_df = pd.read_csv(gene_path)
     thresh_df = thresh_df.columns.difference(['type'])
 
-    # # create heat maps
-    # create_heat_maps(df)
-
-    # # reformat data and build network
     build_network(df)
-    # find_all_paths(path_limit=4)
 
-    # print(sigmoid_curve_fit('ACE2', 'CLB1'))
-    # orthologs, complexes = read_group_nodes()
-    # create_group_nodes(orthologs, complexes)
     group_compiler()
-
-    # outs = out_orthologs(orthologs)
-    # ins = in_orthologs(orthologs)
-    # ortho_edges = pd.concat([outs, ins], ignore_index=True)
-    # ortho_edges.to_csv("ortho_edges.csv")
-
-
-    # tf = 'YOX1'
-    # target = 'SWI6'
-    # data = exp_dict[tf][target]
-    # plt.figure(figsize=(10, 6))
-    
-    # timestamps, values = zip(*data)
-    # timestamps = list(timestamps)
-    # values = list(values)
-    # plt.plot(timestamps, values, marker='o', linestyle='-')
-    # plt.savefig(f"time_series_plots/tf_target/{tf}_{target}.png")
-    # plt.close()
     
 if __name__ == '__main__':
     main()   
