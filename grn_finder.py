@@ -201,17 +201,54 @@ def sigmoid_curve_fit(tf, gene):
     if max(ydata) - min(ydata) < amp_thresh:
         return None 
     
-    # curve fit
+    # Ensure the "sig_curve_plots" directory exists
+    plot_dir = "sig_curve_plots"
+    os.makedirs(plot_dir, exist_ok=True)
+    
+    # curve fit for single sigmoid
     try:
-        bounds = ([-np.inf, 0, 0, -np.inf], [np.inf, np.inf, np.inf, np.inf]) # bounds and method specified
+        bounds = ([-np.inf, 0, 0, -np.inf], [np.inf, np.inf, np.inf, np.inf])
         params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=10000)
+        
+        # Plot the data and the fitted curve
+        x_fit = np.linspace(min(xdata), max(xdata), 100)
+        y_fit = sigmoid(x_fit, *params)
+        
+        plt.scatter(xdata, ydata, label='Data Points', color='blue')
+        plt.plot(x_fit, y_fit, label='Sigmoid Fit', color='red')
+        plt.xlabel('Time')
+        plt.ylabel('Expression Level')
+        plt.title(f"Sigmoid Fit for {tf} -> {gene}")
+        plt.legend()
+        
+        # Save the plot
+        plot_filename = os.path.join(plot_dir, f"sigmoid_fit_{tf}_{gene}.png")
+        plt.savefig(plot_filename)
+        plt.close()  # Close the plot to free memory
         return params
     except Exception:
         pass
+    # curve fit for double sigmoid
     try:
         bounds = ([-np.inf, 0, 0, -np.inf, -np.inf, 0, 0, -np.inf], 
                   [np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
         params, _ = scipy.optimize.curve_fit(double_sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=10000)
+        
+        # Plot the data and the fitted double sigmoid curve
+        x_fit = np.linspace(min(xdata), max(xdata), 100)
+        y_fit = double_sigmoid(x_fit, *params)
+        
+        plt.scatter(xdata, ydata, label='Data Points', color='blue')
+        plt.plot(x_fit, y_fit, label='Double Sigmoid Fit', color='green')
+        plt.xlabel('Time')
+        plt.ylabel('Expression Level')
+        plt.title(f"Double Sigmoid Fit for {tf} -> {gene}")
+        plt.legend()
+        
+        # Save the plot
+        plot_filename = os.path.join(plot_dir, f"sigmoid_fit_{tf}_{gene}.png")
+        plt.savefig(plot_filename)
+        plt.close()  # Close the plot to free memory
         return params
     except Exception as e:
         print(f"{e} - TF: {tf}, target: {gene}")
@@ -232,52 +269,145 @@ def heat_map_colors():
     haase = matplotlib.colors.LinearSegmentedColormap.from_list("", colors)
     return haase
 
+# def create_heat_maps(df):
+#     '''
+#     Build heat maps based on gene expression levels, and creates .png file containing output. 
+#     Arrange subplots based on TF. 
+
+#     Parameters:
+#     df (pandas DataFrame): gene expression data of desired TFs and targets
+#     '''
+#     # run heat_map_colors() to get haase color scheme
+#     haase = heat_map_colors()
+
+#     # num_cols and num_rows to determine dimensions of plot and subplots
+#     tfs = df['TF'].unique()
+#     num_tfs = len(tfs)
+#     num_cols = 4
+#     num_rows = math.ceil(num_tfs / num_cols)
+
+#     # create plot
+#     fig = plt.figure(figsize = (15,10 + num_rows * 3))
+#     fig.subplots_adjust(hspace=0.4, wspace=0.4, top = 0.90)
+#     fig.suptitle("IDEA Dataset Expression Levels", fontsize = 15)
+    
+
+#     for i, tf in enumerate(tfs):    
+#         # Filter data for the specific TF
+#         tf_data = df[df['TF'] == tf]
+
+#         # Create a pivot table for heatmap 
+#         heatmap_data = tf_data.pivot(index='GeneName', columns='time', values='log2_cleaned_ratio')
+
+#         # Make subplot
+#         ax = plt.subplot(num_rows, num_cols, i + 1)
+#         sns.heatmap(heatmap_data, cmap=haase, cbar=True, vmin=-2, vmax=2, ax=ax)
+#         ax.set_title(tf)
+#         ax.set_xlabel('time (min)')
+#         ax.set_ylabel('')  
+
+#         # set tick positions and labels
+#         # times = np.array([0.0, 5.0, 10.0, 15.0, 20.0, 30.0, 45.0, 90.0])
+#         gene_names = heatmap_data.index.to_numpy()
+#         # ax.set_xticks(np.arange(len(times)), labels=times)
+#         ax.set_yticks(np.arange(len(gene_names)) + 0.25, labels=gene_names, fontsize=6)
+#         plt.xticks(rotation=45)  
+
+#     plt.savefig("heat_maps.png")
+#     plt.show()
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+import numpy as np
+import math
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+import numpy as np
+import math
+
 def create_heat_maps(df):
     '''
-    Build heat maps based on gene expression levels, and creates .png file containing output. 
-    Arrange subplots based on TF. 
+    Build heat maps based on gene expression levels and save as a .png file.
+    Subplots are arranged based on TF, with a single shared color legend.
 
     Parameters:
     df (pandas DataFrame): gene expression data of desired TFs and targets
     '''
-    # run heat_map_colors() to get haase color scheme
+
+    # Run heat_map_colors() to get haase color scheme
     haase = heat_map_colors()
 
-    # num_cols and num_rows to determine dimensions of plot and subplots
+    # Get unique TFs and determine grid layout
     tfs = df['TF'].unique()
     num_tfs = len(tfs)
-    num_cols = 4
+    
+    # Dynamically set columns for a balanced layout (max 4 per row)
+    num_cols = min(4, num_tfs)
     num_rows = math.ceil(num_tfs / num_cols)
 
-    # create plot
-    fig = plt.figure(figsize = (15,10 + num_rows * 3))
-    fig.subplots_adjust(hspace=0.4, wspace=0.4, top = 0.90)
-    fig.suptitle("IDEA Dataset Expression Levels", fontsize = 15)
-    
+    # Create larger figure with gridspec to accommodate a single color bar
+    fig, axes = plt.subplots(num_rows, num_cols, figsize=(num_cols * 5 + 5, num_rows * 15), 
+                             constrained_layout=True, sharey=True)
+    fig.suptitle("IDEA Dataset Expression Levels", fontsize=20, fontname='Arial')
 
-    for i, tf in enumerate(tfs):    
+    # Flatten axes array for easy iteration
+    axes = np.array(axes).reshape(-1)
+
+    # Collect all heatmap data for normalization
+    norm = plt.Normalize(vmin=-1.5, vmax=1.5)
+
+    # Create heatmaps without individual color bars
+    for i, (ax, tf) in enumerate(zip(axes, tfs)):    
         # Filter data for the specific TF
         tf_data = df[df['TF'] == tf]
 
-        # Create a pivot table for heatmap 
+        # Create pivot table for heatmap
         heatmap_data = tf_data.pivot(index='GeneName', columns='time', values='log2_cleaned_ratio')
 
-        # Make subplot
-        ax = plt.subplot(num_rows, num_cols, i + 1)
-        sns.heatmap(heatmap_data, cmap=haase, cbar=True, vmin=-2, vmax=2, ax=ax)
-        ax.set_title(tf)
-        ax.set_xlabel('time (min)')
-        ax.set_ylabel('')  
+        # Generate heatmap
+        sns.heatmap(heatmap_data, cmap=haase, cbar=False, vmin=-1.5, vmax=1.5, ax=ax)
 
-        # set tick positions and labels
-        # times = np.array([0.0, 5.0, 10.0, 15.0, 20.0, 30.0, 45.0, 90.0])
+        # Add only horizontal gridlines
+        for y in range(1, heatmap_data.shape[0]):
+            ax.axhline(y, color='white', linewidth=1)
+        
+        # Set title and labels
+        ax.set_title(tf, fontsize=20, fontname='Arial')
+        ax.set_xlabel('Time (min)', fontsize=20, fontname='Arial')
+
+        # Only show y-axis labels for the leftmost column
+        if i % num_cols == 0:
+            ax.set_ylabel('', fontsize=20, fontname='Arial')
+        else:
+            ax.set_ylabel(None)
+
+        # Set tick labels
         gene_names = heatmap_data.index.to_numpy()
-        # ax.set_xticks(np.arange(len(times)), labels=times)
-        ax.set_yticks(np.arange(len(gene_names)) + 0.25, labels=gene_names, fontsize=6)
-        plt.xticks(rotation=45)  
+        ax.set_yticks(np.arange(len(gene_names)) + 0.5)
+        ax.set_yticklabels(gene_names, rotation=0, fontsize=20, fontname='Arial')
 
-    plt.savefig("heat_maps.png")
+        plt.setp(ax.get_xticklabels(), rotation=45, fontsize=20, fontname='Arial')
+
+    # Hide unused subplots if TF count is not a multiple of num_cols
+    for j in range(i + 1, len(axes)):
+        fig.delaxes(axes[j])
+
+    # Create a single colorbar positioned further right
+    cbar_ax = fig.add_axes([1.1, 0.3, 0.02, 0.2])  # Move right (left=1.1), taller (height=0.6)
+    sm = plt.cm.ScalarMappable(cmap=haase, norm=norm)
+    cbar = plt.colorbar(sm, cax=cbar_ax)
+    cbar.set_label(r"$\log_2$ RNA expression fold change", fontsize=20, fontname='Arial')
+    cbar.set_ticks([-1.5, -1, -0.5, 0, 0.5, 1, 1.5])  # Set labeled scale
+    cbar.ax.tick_params(labelsize=20)  # Increase font size for readability
+
+    # Save and display the heatmap figure
+    plt.savefig("heat_maps.png", dpi=300, bbox_inches='tight')
     plt.show()
+
+ 
 
 # grn network construction
 def build_ref_network():
