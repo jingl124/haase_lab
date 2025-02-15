@@ -216,9 +216,9 @@ def sigmoid_curve_fit(tf, gene):
         
         plt.scatter(xdata, ydata, label='Data Points', color='blue')
         plt.plot(x_fit, y_fit, label='Sigmoid Fit', color='red')
-        plt.xlabel('Time')
-        plt.ylabel('Expression Level')
-        plt.title(f"Sigmoid Fit for {tf} -> {gene}")
+        plt.xlabel('Time (min)')
+        plt.ylabel(r'$\log_2$ Change in RNA Expression Level')
+        plt.title(f"{tf} \u2192 {gene}")
         plt.legend()
         
         # Save the plot
@@ -241,8 +241,8 @@ def sigmoid_curve_fit(tf, gene):
         plt.scatter(xdata, ydata, label='Data Points', color='blue')
         plt.plot(x_fit, y_fit, label='Double Sigmoid Fit', color='green')
         plt.xlabel('Time')
-        plt.ylabel('Expression Level')
-        plt.title(f"Double Sigmoid Fit for {tf} -> {gene}")
+        plt.ylabel('RNA Expression Level')
+        plt.title(f"Double Sigmoid Fit for {tf} \u2192 {gene}")
         plt.legend()
         
         # Save the plot
