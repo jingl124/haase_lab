@@ -184,7 +184,7 @@ def scale_data(data):
 def initial_guess(xdata, ydata):
     amplitude = max(ydata) - min(ydata)
     midpoint = xdata[np.argmin(np.abs(ydata - np.mean(ydata)))]  # Approximate midpoint
-    k = 1  # Initial slope guess
+    k = amplitude/30  # Initial slope guess
     vertical_shift = min(ydata)
     return [amplitude, midpoint, k, vertical_shift]
 
