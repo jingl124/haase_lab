@@ -7,5 +7,6 @@ group,type
 "[WHI5;STB1]",orthologs
 "[YOX1;NRM1;YHP1]",orthologs
 "[HCM1;PLM2;TOS4]",orthologs
-"[NDD1;FKH1;FKH2]",complex
+"[NDD1;FKH1;FKH2;MCM1]",complex
 "[SWI5;ACE2]",orthologs
+"[CLB2]",orthologs

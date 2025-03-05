@@ -13,6 +13,10 @@ import datetime
 import ast
 import grn_search as search
 from tabulate import tabulate
+from sklearn.metrics import r2_score
+from scipy.special import expit
+
+
 
 importlib.reload(structs)
 
@@ -146,14 +150,15 @@ def get_sig_info(tf, gene):
     time of activation/inhibition (float)
     whether its activation or not (boolean)
     '''
-    params = sigmoid_curve_fit(tf, gene) # [L_opt, x0_opt, k_opt, b_opt] or [L1, x01, k1, b1, L2, x02, k2, b2]
+    params, r_squared = sigmoid_curve_fit(tf, gene) # [L_opt, x0_opt, k_opt, b_opt] or [L1, x01, k1, b1, L2, x02, k2, b2]
     amp_thresh = thresh_df.loc[thresh_df['gene'] == tf, 'amp_thresh'].values[0]
     if params is None or len(params) == 0 or abs(params[0]) < amp_thresh:
-        return None, None
-    return params[1], (params[0] > 0)
+        return None, None, None
+    return params[1], (params[0] > 0), r_squared
 
 def sigmoid(x, L ,x0, k, b):
-    y = L / (1 + np.exp(-k*(x-x0))) + b
+    # y = L / (1 + np.exp(-k*(x-x0))) + b
+    y = L * expit(k * (x - x0)) + b
     return y
 
 def double_sigmoid(x, L1, x01, k1, b1, L2, x02, k2, b2):
@@ -176,6 +181,18 @@ def scale_data(data):
         return [0 for _ in data]
     return [(d - data_min) / (data_max - data_min) for d in data]
 
+def initial_guess(xdata, ydata):
+    amplitude = max(ydata) - min(ydata)
+    midpoint = xdata[np.argmin(np.abs(ydata - np.mean(ydata)))]  # Approximate midpoint
+    k = 1  # Initial slope guess
+    vertical_shift = min(ydata)
+    return [amplitude, midpoint, k, vertical_shift]
+
+def calculate_r_squared(xdata, ydata, params):
+    residuals = ydata - sigmoid(xdata, *params)
+    ss_res = np.sum(residuals ** 2)
+    ss_tot = np.sum((ydata - np.mean(ydata)) ** 2)
+    return 1 - (ss_res / ss_tot)
 
 def sigmoid_curve_fit(tf, gene):
     '''
@@ -192,67 +209,80 @@ def sigmoid_curve_fit(tf, gene):
     xdata = []
     ydata = []
     for time in time_series:
+        if time[0] >= 45:
+            break
         xdata.append(time[0])
         ydata.append(time[1])
-    p0 = [max(ydata), np.median(xdata), 1, min(ydata)] 
 
     # prematurely remove time series data that doesn't have a big enough amplitude
     amp_thresh = thresh_df.loc[thresh_df['gene'] == tf, 'amp_thresh'].values[0]
     if max(ydata) - min(ydata) < amp_thresh:
-        return None 
+        return None, None
     
     # Ensure the "sig_curve_plots" directory exists
     plot_dir = "sig_curve_plots"
     os.makedirs(plot_dir, exist_ok=True)
-    
+
     # curve fit for single sigmoid
     try:
-        bounds = ([-np.inf, 0, 0, -np.inf], [np.inf, np.inf, np.inf, np.inf])
-        params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=10000)
-        
-        # Plot the data and the fitted curve
+        p0 = initial_guess(xdata, ydata)
+        # p0 = [max(ydata), np.median(xdata), 1, min(ydata)]
+
+        bounds = ([-np.inf, 0, 0, -np.inf], [np.inf, np.inf, np.inf, np.inf])  # (L, k, x0, b)
+        # params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
+        params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, method='lm', maxfev=100000)
+
+        r_squared = calculate_r_squared(xdata, ydata, params)
+
+        # bounds = ([-np.inf, 0, 0, -np.inf], [np.inf, np.inf, np.inf, np.inf])
+        # params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=10000)
+
+        # Generate fitted curve
         x_fit = np.linspace(min(xdata), max(xdata), 100)
         y_fit = sigmoid(x_fit, *params)
-        
-        plt.scatter(xdata, ydata, label='Data Points', color='blue')
-        plt.plot(x_fit, y_fit, label='Sigmoid Fit', color='red')
-        plt.xlabel('Time (min)')
-        plt.ylabel(r'$\log_2$ Change in RNA Expression Level')
+
+        # Plot the data and the fitted curve
+        plt.figure(figsize=(6, 5))  # Adjust figure size
+        plt.scatter(xdata, ydata, label="Data Points", color="blue")
+        plt.plot(x_fit, y_fit, label="Sigmoid Fit", color="red")
+        plt.xlabel("Time (min)")
+        plt.ylabel(r"$\log_2$ Change in RNA Expression Level")
         plt.title(f"{tf} \u2192 {gene}")
         plt.legend()
+
+        # Add text annotations (placed on the right side)
+        text_x = max(xdata) * 0.75  # Position text on the right
+        text_y = max(ydata) - (max(ydata) - min(ydata)) * 0.2  # Adjust vertical position
         
+        annotation_text = (
+            f"$t_{{1/2}} = {params[1]:.2f}$\n"
+            f"Amplitude = {params[0]:.2f}\n"
+            f"$R^2 = {r_squared:.3f}$"
+        )
+
+        # Get the x-axis limits
+        x_min, x_max = plt.gca().get_xlim()
+
+        # Define text position (near the right edge)
+        text_x = x_max * 1.05  # Slightly outside the right edge
+        text_y = plt.gca().get_ylim()[1] * 0.85  # 85% up the y-axis
+
+        # Add text box completely to the right
+        plt.text(
+            text_x, text_y, annotation_text,
+            ha="left", va="top", fontsize=12, color="black",
+            bbox=dict(facecolor="white", edgecolor="black", boxstyle="round", alpha=0.9),
+            transform=plt.gca().transData  # Keep text in data coordinates
+        )
+
         # Save the plot
         plot_filename = os.path.join(plot_dir, f"sigmoid_fit_{tf}_{gene}.png")
-        plt.savefig(plot_filename)
+        plt.savefig(plot_filename, bbox_inches="tight")
         plt.close()  # Close the plot to free memory
-        return params
-    except Exception:
-        pass
-    # curve fit for double sigmoid
-    try:
-        bounds = ([-np.inf, 0, 0, -np.inf, -np.inf, 0, 0, -np.inf], 
-                  [np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
-        params, _ = scipy.optimize.curve_fit(double_sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=10000)
-        
-        # Plot the data and the fitted double sigmoid curve
-        x_fit = np.linspace(min(xdata), max(xdata), 100)
-        y_fit = double_sigmoid(x_fit, *params)
-        
-        plt.scatter(xdata, ydata, label='Data Points', color='blue')
-        plt.plot(x_fit, y_fit, label='Double Sigmoid Fit', color='green')
-        plt.xlabel('Time')
-        plt.ylabel('RNA Expression Level')
-        plt.title(f"Double Sigmoid Fit for {tf} \u2192 {gene}")
-        plt.legend()
-        
-        # Save the plot
-        plot_filename = os.path.join(plot_dir, f"sigmoid_fit_{tf}_{gene}.png")
-        plt.savefig(plot_filename)
-        plt.close()  # Close the plot to free memory
-        return params
+        return params, r_squared
     except Exception as e:
         print(f"{e} - TF: {tf}, target: {gene}")
-        return None
+        return None, None
 
 # building heat maps
 def heat_map_colors():
@@ -316,18 +346,6 @@ def heat_map_colors():
 #     plt.savefig("heat_maps.png")
 #     plt.show()
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
-import numpy as np
-import math
-
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
-import numpy as np
-import math
-
 def create_heat_maps(df):
     '''
     Build heat maps based on gene expression levels and save as a .png file.
@@ -351,7 +369,6 @@ def create_heat_maps(df):
     # Create larger figure with gridspec to accommodate a single color bar
     fig, axes = plt.subplots(num_rows, num_cols, figsize=(num_cols * 5 + 5, num_rows * 15), 
                              constrained_layout=True, sharey=True)
-    fig.suptitle("IDEA Dataset Expression Levels", fontsize=20, fontname='Arial')
 
     # Flatten axes array for easy iteration
     axes = np.array(axes).reshape(-1)
@@ -375,21 +392,26 @@ def create_heat_maps(df):
             ax.axhline(y, color='white', linewidth=1)
         
         # Set title and labels
-        ax.set_title(tf, fontsize=20, fontname='Arial')
-        ax.set_xlabel('Time (min)', fontsize=20, fontname='Arial')
+        ax.set_title(tf, fontsize=30, fontname='Arial')
+        ax.set_xlabel('Time (min)', fontsize=30, fontname='Arial')
 
         # Only show y-axis labels for the leftmost column
         if i % num_cols == 0:
-            ax.set_ylabel('', fontsize=20, fontname='Arial')
+            ax.set_ylabel('', fontsize=30, fontname='Arial')
         else:
             ax.set_ylabel(None)
 
         # Set tick labels
         gene_names = heatmap_data.index.to_numpy()
         ax.set_yticks(np.arange(len(gene_names)) + 0.5)
-        ax.set_yticklabels(gene_names, rotation=0, fontsize=20, fontname='Arial')
+        ax.set_yticklabels(gene_names, rotation=0, fontsize=30, fontname='Arial')
 
-        plt.setp(ax.get_xticklabels(), rotation=45, fontsize=20, fontname='Arial')
+        # Stagger y-tick labels
+        for j, label in enumerate(ax.get_yticklabels()):
+            if j % 2 == 1:  # Shift every other label
+                label.set_y(label.get_position()[1] - 0.2)  # Adjust as needed for spacing
+
+        plt.setp(ax.get_xticklabels(), rotation=45, fontsize=30, fontname='Arial')
 
     # Hide unused subplots if TF count is not a multiple of num_cols
     for j in range(i + 1, len(axes)):
@@ -399,7 +421,7 @@ def create_heat_maps(df):
     cbar_ax = fig.add_axes([1.1, 0.3, 0.02, 0.2])  # Move right (left=1.1), taller (height=0.6)
     sm = plt.cm.ScalarMappable(cmap=haase, norm=norm)
     cbar = plt.colorbar(sm, cax=cbar_ax)
-    cbar.set_label(r"$\log_2$ RNA expression fold change", fontsize=20, fontname='Arial')
+    cbar.set_label(r"$\log_2$ RNA expression fold change", fontsize=30, fontname='Arial')
     cbar.set_ticks([-1.5, -1, -0.5, 0, 0.5, 1, 1.5])  # Set labeled scale
     cbar.ax.tick_params(labelsize=20)  # Increase font size for readability
 
@@ -407,7 +429,6 @@ def create_heat_maps(df):
     plt.savefig("heat_maps.png", dpi=300, bbox_inches='tight')
     plt.show()
 
- 
 
 # grn network construction
 def build_ref_network():
@@ -453,7 +474,9 @@ def build_tree(tf, edges_df):
     for gene in exp_dict[tf].keys(): # target
         if tf == gene:
             continue
-        time, sign = get_sig_info(tf, gene)
+        time, sign, r_squared = get_sig_info(tf, gene)
+        if r_squared is None or r_squared < 0.8:
+            continue
         if time is not None and time > 0 and time < t_thresh:
             if gene not in gene_nodes:
                 gene_nodes[gene] = structs.GeneNode(gene)
@@ -589,7 +612,7 @@ def build_network(df):
         build_tree(tf, edges_df) 
     edges_df.to_csv(f"grn_edges/grn_edges_{timestamp}.csv", index=False)
 
-    # visualize_gene_network()
+    visualize_gene_network()
 
 # find paths
 def find_paths(tf, target, graph, path_limit=3):
@@ -906,6 +929,9 @@ def read_group_nodes():
         nodes_str = group[1:len(group)-1].split(";")
         nodes = []
         for str in nodes_str:
+            if str not in gene_nodes.keys():
+                temp = structs.GeneNode(str)
+                gene_nodes[str] = temp
             nodes.append(gene_nodes[str])
         node = structs.GroupNode(nodes, type)
         groups.append(node)
@@ -972,7 +998,12 @@ def search_edge_origins():
         df = pd.read_csv(f"group_edge_origins/group_edge_origins_{timestamp}.csv")
         
         # Search for the row where group1 and group2 match the input
-        result = df[(df['group1'] == group1) & (df['group2'] == group2)]
+        result = df
+        if group1 != "":
+            result = result[df['group1'] == group1]
+        if group2 != "":
+            result = result[df['group2'] == group2]
+        # result = df[(df['group1'] == group1) & (df['group2'] == group2)]
         if sign == "act" or sign == "rep":
             result = df[df["sign"] == sign]
         
@@ -1014,7 +1045,6 @@ def main():
     thresh_df = thresh_df.columns.difference(['type'])
 
     build_network(df)
-
     group_compiler()
     
 if __name__ == '__main__':

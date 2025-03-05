@@ -1,29 +1,29 @@
 ﻿gene,type,t_thresh,amp_thresh
-CLN1,target,17,0.2
-CLN2,target,17,0.2
-CLN3,target,17,0.2
-CLB1,target,17,0.2
-CLB2,target,17,0.2
-CLB3,target,17,0.2
-CLB4,target,17,0.2
-CLB5,target,17,0.2
-CLB6,target,17,0.2
-YOX1,target tf,17,0.2
-YHP1,target tf,17,0.2
-NRM1,target tf,17,0.3
-HCM1,target tf,15,0.2
-PLM2,target tf,17,0.2
-TOS4,target tf,17,0.2
-SWI4,target tf,17,0.2
-SWI5,target tf,17,0.2
-SWI6,target tf,17,0.2
-ACE2,target tf,20,0.2
-NDD1,target tf,17,0.2
-FKH1,target tf,6.5,0.2
-FKH2,target tf,18,0.2
-MCM1,target tf,17,0.2
-WHI5,target tf,17,0.2
-STB1,target tf,17,0.2
-MBP1,target tf,17,0.2
-CDH1,target,17,0.2
-CDC20,target,17,0.2
+CLN1,target,10,0.2
+CLN2,target,10,0.2
+CLN3,target,10,0.2
+CLB1,target,10,0.2
+CLB2,target,10,0.2
+CLB3,target,10,0.2
+CLB4,target,10,0.2
+CLB5,target,10,0.2
+CLB6,target,10,0.2
+YOX1,target tf,10,0.2
+YHP1,target tf,10,0.2
+NRM1,target tf,10,0.2
+HCM1,target tf,10,0.2
+PLM2,target tf,10,0.2
+TOS4,target tf,10,0.2
+SWI4,target tf,10,0.2
+SWI5,target tf,10,0.2
+SWI6,target tf,10,0.2
+ACE2,target tf,10,0.2
+NDD1,target tf,10,0.2
+FKH1,target tf,10,0.2
+FKH2,target tf,10,0.2
+MCM1,target tf,10,0.2
+WHI5,target tf,10,0.2
+STB1,target tf,10,0.2
+MBP1,target tf,10,0.2
+CDH1,target,10,0.2
+CDC20,target,10,0.2
