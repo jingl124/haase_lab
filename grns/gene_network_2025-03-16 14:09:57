@@ -1,0 +1,23 @@
+// Gene Regulatory Network
+digraph {
+	ACE2 [shape=box]
+	FKH1 [shape=box]
+	CLB6 [shape=box]
+	STB1 [shape=box]
+	FKH2 [shape=box]
+	YOX1 [shape=box]
+	HCM1 [shape=box]
+	MBP1 [shape=box]
+	NRM1 [shape=box]
+	YHP1 [shape=box]
+	SWI5 [shape=box]
+	SWI6 [shape=box]
+	WHI5 [shape=box]
+	FKH1 -> CLB6 [arrowhead=normal color=black]
+	FKH1 -> STB1 [arrowhead=normal color=black]
+	STB1 -> YHP1 [arrowhead=normal color=black]
+	FKH2 -> YOX1 [arrowhead=normal color=black]
+	NRM1 -> HCM1 [arrowhead=normal color=black]
+	NRM1 -> STB1 [arrowhead=normal color=black]
+	YHP1 -> YOX1 [arrowhead=normal color=black]
+}

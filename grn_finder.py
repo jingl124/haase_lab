@@ -15,6 +15,7 @@ import grn_search as search
 from tabulate import tabulate
 from sklearn.metrics import r2_score
 from scipy.special import expit
+import csv
 
 
 
@@ -220,19 +221,30 @@ def sigmoid_curve_fit(tf, gene):
         return None, None
     
     # Ensure the "sig_curve_plots" directory exists
-    plot_dir = "sig_curve_plots"
+    plot_dir = "sig_curve_plots_lm"
     os.makedirs(plot_dir, exist_ok=True)
+
+    # r squared values
+    csv_filename = "sigmoid_fit_results_lm.csv"
+    if not os.path.exists(csv_filename):
+        with open(csv_filename, mode="w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(["TF", "Gene", "t_1/2", "amp", "R_squared"])
 
     # curve fit for single sigmoid
     try:
         p0 = initial_guess(xdata, ydata)
         # p0 = [max(ydata), np.median(xdata), 1, min(ydata)]
 
-        bounds = ([-np.inf, 0, 0, -np.inf], [np.inf, np.inf, np.inf, np.inf])  # (L, k, x0, b)
+        # bounds = ([-np.inf, 0, 0, -np.inf], [np.inf, np.inf, np.inf, np.inf])  # (L, k, x0, b)
         # params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
         params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, method='lm', maxfev=100000)
 
         r_squared = calculate_r_squared(xdata, ydata, params)
+        # Save results to CSV
+        with open(csv_filename, mode="a", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow([tf, gene] + [params[2]] + [params[0]] + [r_squared])
 
         # bounds = ([-np.inf, 0, 0, -np.inf], [np.inf, np.inf, np.inf, np.inf])
         # params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=10000)
@@ -276,7 +288,7 @@ def sigmoid_curve_fit(tf, gene):
         )
 
         # Save the plot
-        plot_filename = os.path.join(plot_dir, f"sigmoid_fit_{tf}_{gene}.png")
+        plot_filename = os.path.join(plot_dir, f"sigmoid_fit_{tf}_{gene}_lm.png")
         plt.savefig(plot_filename, bbox_inches="tight")
         plt.close()  # Close the plot to free memory
         return params, r_squared
@@ -431,27 +443,27 @@ def create_heat_maps(df):
 
 
 # grn network construction
-def build_ref_network():
-    '''
-    Build cell cycle reference network on top of generated GRN. 
-    '''
-    df = pd.read_csv('ref_edges.csv')
-    for _, row in df.iterrows():
-        tf = row['reg']
-        if tf not in gene_nodes:
-            gene_nodes[tf] = structs.GeneNode(tf)
-        tf_node = gene_nodes[tf]
+# def build_ref_network():
+#     '''
+#     Build cell cycle reference network on top of generated GRN. 
+#     '''
+#     df = pd.read_csv('ref_edges.csv')
+#     for _, row in df.iterrows():
+#         tf = row['reg']
+#         if tf not in gene_nodes:
+#             gene_nodes[tf] = structs.GeneNode(tf)
+#         tf_node = gene_nodes[tf]
 
-        target = row['target']
-        if target not in gene_nodes:
-            gene_nodes[target] = structs.GeneNode(target)
-        target_node = gene_nodes[target]
+#         target = row['target']
+#         if target not in gene_nodes:
+#             gene_nodes[target] = structs.GeneNode(target)
+#         target_node = gene_nodes[target]
 
-        act = row['type'] == 'act'
+#         act = row['type'] == 'act'
 
-        edge = tf_node.get_edge(target_node, act)
-        if edge is None:
-            tf_node.add_edge(target_node, act)
+#         edge = tf_node.get_edge(target_node, act)
+#         if edge is None:
+#             tf_node.add_edge(target_node, act)
 
 
 def build_tree(tf, edges_df):
@@ -490,7 +502,7 @@ def visualize_gene_network():
     Output stored in a .pdf file.
     '''
     # produce ref graph
-    build_ref_network()
+    # build_ref_network()
 
     # create digraph
     dot = graphviz.Digraph(comment='Gene Regulatory Network')
@@ -500,17 +512,25 @@ def visualize_gene_network():
         dot.node(gene_nodes[gene].name, shape='box')
     
     # Add edges
-    both, refs, grns = network_edges(dot)
+    # both, refs, grns = network_edges(dot)
+    for gene in gene_nodes:
+        for edge in gene_nodes[gene].edges:
+            # determine arrowhead
+            if edge.act:
+                arrowhead = 'normal'
+            else:
+                arrowhead = 'tee'
+            dot.edge(gene, edge.target.name, color='black', arrowhead=arrowhead)
 
     # create legend
-    create_legend(dot)
+    # create_legend(dot)
 
-    edge_counts_text = (
-        f"Number of common edges: {len(both)}\n"
-        f"Number of edges in only ref: {len(refs)}\n"
-        f"Number of edges in only grn: {len(grns)}"
-    )
-    dot.node('edge_counts', label=edge_counts_text, shape='plaintext', fontsize='12')
+    # edge_counts_text = (
+    #     f"Number of common edges: {len(both)}\n"
+    #     f"Number of edges in only ref: {len(refs)}\n"
+    #     f"Number of edges in only grn: {len(grns)}"
+    # )
+    # dot.node('edge_counts', label=edge_counts_text, shape='plaintext', fontsize='12')
     # dot.edge('edge_counts', 'main_annotation', style='invis')  # Link text to main annotation invisibly
 
     # Render the graph
