@@ -1,0 +1,15 @@
+// Gene Regulatory Network
+digraph {
+	ACE2 [shape=box]
+	FKH1 [shape=box]
+	FKH2 [shape=box]
+	HCM1 [shape=box]
+	MBP1 [shape=box]
+	NRM1 [shape=box]
+	STB1 [shape=box]
+	SWI5 [shape=box]
+	SWI6 [shape=box]
+	WHI5 [shape=box]
+	YHP1 [shape=box]
+	YOX1 [shape=box]
+}

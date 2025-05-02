@@ -184,6 +184,8 @@ def scale_data(data):
 
 def initial_guess(xdata, ydata):
     amplitude = max(ydata) - min(ydata)
+    if ydata[-1] - ydata[0] < 0:
+        amplitude = -amplitude
     midpoint = xdata[np.argmin(np.abs(ydata - np.mean(ydata)))]  # Approximate midpoint
     k = amplitude/30  # Initial slope guess
     vertical_shift = min(ydata)
@@ -221,30 +223,31 @@ def sigmoid_curve_fit(tf, gene):
         return None, None
     
     # Ensure the "sig_curve_plots" directory exists
-    plot_dir = "sig_curve_plots_lm"
+    plot_dir = "sig_curve_plots_dogbox"
     os.makedirs(plot_dir, exist_ok=True)
 
     # r squared values
-    csv_filename = "sigmoid_fit_results_lm.csv"
+    csv_filename = "sigmoid_fit_results_dogbox.csv"
     if not os.path.exists(csv_filename):
         with open(csv_filename, mode="w", newline="") as file:
             writer = csv.writer(file)
             writer.writerow(["TF", "Gene", "t_1/2", "amp", "R_squared"])
 
-    # curve fit for single sigmoid
+    # curve fit for sigmoid
     try:
         p0 = initial_guess(xdata, ydata)
         # p0 = [max(ydata), np.median(xdata), 1, min(ydata)]
 
-        # bounds = ([-np.inf, 0, 0, -np.inf], [np.inf, np.inf, np.inf, np.inf])  # (L, k, x0, b)
-        # params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=100000)
-        params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, method='lm', maxfev=100000)
+        bounds = ([-np.inf, -np.inf, -np.inf, -np.inf], [np.inf, np.inf, np.inf, np.inf])  # (L, k, x0, b)
+        params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='trf', maxfev=100000)
+        #params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, method='lm', maxfev=100000)
 
         r_squared = calculate_r_squared(xdata, ydata, params)
         # Save results to CSV
         with open(csv_filename, mode="a", newline="") as file:
             writer = csv.writer(file)
-            writer.writerow([tf, gene] + [params[2]] + [params[0]] + [r_squared])
+            row = [tf, gene] + [params[2]] + [params[0]] + [r_squared]
+            writer.writerow(row)
 
         # bounds = ([-np.inf, 0, 0, -np.inf], [np.inf, np.inf, np.inf, np.inf])
         # params, _ = scipy.optimize.curve_fit(sigmoid, xdata, ydata, p0=p0, bounds=bounds, method='dogbox', maxfev=10000)
@@ -288,7 +291,7 @@ def sigmoid_curve_fit(tf, gene):
         )
 
         # Save the plot
-        plot_filename = os.path.join(plot_dir, f"sigmoid_fit_{tf}_{gene}_lm.png")
+        plot_filename = os.path.join(plot_dir, f"sigmoid_fit_{tf}_{gene}_dogbox.png")
         plt.savefig(plot_filename, bbox_inches="tight")
         plt.close()  # Close the plot to free memory
         return params, r_squared
@@ -310,53 +313,6 @@ def heat_map_colors():
          [norm(1.5), "yellow"]]
     haase = matplotlib.colors.LinearSegmentedColormap.from_list("", colors)
     return haase
-
-# def create_heat_maps(df):
-#     '''
-#     Build heat maps based on gene expression levels, and creates .png file containing output. 
-#     Arrange subplots based on TF. 
-
-#     Parameters:
-#     df (pandas DataFrame): gene expression data of desired TFs and targets
-#     '''
-#     # run heat_map_colors() to get haase color scheme
-#     haase = heat_map_colors()
-
-#     # num_cols and num_rows to determine dimensions of plot and subplots
-#     tfs = df['TF'].unique()
-#     num_tfs = len(tfs)
-#     num_cols = 4
-#     num_rows = math.ceil(num_tfs / num_cols)
-
-#     # create plot
-#     fig = plt.figure(figsize = (15,10 + num_rows * 3))
-#     fig.subplots_adjust(hspace=0.4, wspace=0.4, top = 0.90)
-#     fig.suptitle("IDEA Dataset Expression Levels", fontsize = 15)
-    
-
-#     for i, tf in enumerate(tfs):    
-#         # Filter data for the specific TF
-#         tf_data = df[df['TF'] == tf]
-
-#         # Create a pivot table for heatmap 
-#         heatmap_data = tf_data.pivot(index='GeneName', columns='time', values='log2_cleaned_ratio')
-
-#         # Make subplot
-#         ax = plt.subplot(num_rows, num_cols, i + 1)
-#         sns.heatmap(heatmap_data, cmap=haase, cbar=True, vmin=-2, vmax=2, ax=ax)
-#         ax.set_title(tf)
-#         ax.set_xlabel('time (min)')
-#         ax.set_ylabel('')  
-
-#         # set tick positions and labels
-#         # times = np.array([0.0, 5.0, 10.0, 15.0, 20.0, 30.0, 45.0, 90.0])
-#         gene_names = heatmap_data.index.to_numpy()
-#         # ax.set_xticks(np.arange(len(times)), labels=times)
-#         ax.set_yticks(np.arange(len(gene_names)) + 0.25, labels=gene_names, fontsize=6)
-#         plt.xticks(rotation=45)  
-
-#     plt.savefig("heat_maps.png")
-#     plt.show()
 
 def create_heat_maps(df):
     '''
@@ -441,31 +397,6 @@ def create_heat_maps(df):
     plt.savefig("heat_maps.png", dpi=300, bbox_inches='tight')
     plt.show()
 
-
-# grn network construction
-# def build_ref_network():
-#     '''
-#     Build cell cycle reference network on top of generated GRN. 
-#     '''
-#     df = pd.read_csv('ref_edges.csv')
-#     for _, row in df.iterrows():
-#         tf = row['reg']
-#         if tf not in gene_nodes:
-#             gene_nodes[tf] = structs.GeneNode(tf)
-#         tf_node = gene_nodes[tf]
-
-#         target = row['target']
-#         if target not in gene_nodes:
-#             gene_nodes[target] = structs.GeneNode(target)
-#         target_node = gene_nodes[target]
-
-#         act = row['type'] == 'act'
-
-#         edge = tf_node.get_edge(target_node, act)
-#         if edge is None:
-#             tf_node.add_edge(target_node, act)
-
-
 def build_tree(tf, edges_df):
     '''
     Create a tree structure with a height of 1 for a given TF.
@@ -521,17 +452,6 @@ def visualize_gene_network():
             else:
                 arrowhead = 'tee'
             dot.edge(gene, edge.target.name, color='black', arrowhead=arrowhead)
-
-    # create legend
-    # create_legend(dot)
-
-    # edge_counts_text = (
-    #     f"Number of common edges: {len(both)}\n"
-    #     f"Number of edges in only ref: {len(refs)}\n"
-    #     f"Number of edges in only grn: {len(grns)}"
-    # )
-    # dot.node('edge_counts', label=edge_counts_text, shape='plaintext', fontsize='12')
-    # dot.edge('edge_counts', 'main_annotation', style='invis')  # Link text to main annotation invisibly
 
     # Render the graph
     dot.render(f'grns/gene_network_{timestamp}', view=True)
